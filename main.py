@@ -3,7 +3,8 @@ import sys
 from settings import *
 from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
-from platformer import Player as PlatPlayer, Platform, Hazard, Enemy as PlatEnemy, Boss, RewardItem
+from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem, init_platformer, setup_stage
+
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -231,40 +232,69 @@ while running:
     elif game_state == "platformer":
         if not platformer_initialized:
             init_platformer()
+    
         keys = pygame.key.get_pressed()
-        # Update player
+        # Update player with attacks
         player.update(platforms, enemies, hazards)
+
         # Update enemies
         for enemy in enemies:
             enemy.update()
+
         # Update boss
         for boss in boss_group:
             boss.update(player_group, enemies)
+            boss.minions.update()
+
+        # Check player attacks hitting enemies
+        for attack in player.attack_group:
+            # Enemy collisions
+            hit_enemies = pygame.sprite.spritecollide(attack, enemies, True)
+            if hit_enemies:
+                attack.kill()
+            # Boss minion collisions
+            for boss in boss_group:
+                hit_minions = pygame.sprite.spritecollide(attack, boss.minions, True)
+                if hit_minions:
+                    attack.kill()
+            # Boss collision
+            for boss in boss_group:
+                if attack.rect.colliderect(boss.rect):
+                    boss.health -= 1
+                    attack.kill()
+
+        # Stage progression
+        if player.rect.right > WIDTH and current_stage < max_stages - 1:
+            current_stage += 1
+            setup_stage(current_stage)
+
+        # Draw all elements
+        screen.fill(BLACK)
+        platforms.draw(screen)
+        hazards.draw(screen)
+        enemies.draw(screen)
+        for boss in boss_group:
+            screen.blit(boss.image, boss.rect)
+            boss.minions.draw(screen)
+        reward_group.draw(screen)
+        player_group.draw(screen)
+        player.attack_group.draw(screen)
+
+        # Boss health bar
+        for boss in boss_group:
+            pygame.draw.rect(screen, (255, 0, 0), (boss.rect.x, boss.rect.y - 10, boss.health * 5, 8))
+
+        # Spawn reward if boss defeated
+        if boss_group.sprites() == [] and current_stage == max_stages - 1 and reward_group.sprites() == []:
+            reward_item = RewardItem(WIDTH // 2, HEIGHT // 2, "Asset/reward_item.png")
+            reward_group.add(reward_item)
+
         # Check reward pickup
         for reward in reward_group:
             if player.rect.colliderect(reward.rect):
                 game_state = "cutscene3"
                 reward_group.empty()
                 platformer_initialized = False
-        # Stage progression
-        if player.rect.right > WIDTH and current_stage < max_stages - 1:
-            current_stage += 1
-            setup_stage(current_stage)
-        # Draw all
-        screen.fill(BLACK)
-        platforms.draw(screen)
-        hazards.draw(screen)
-        enemies.draw(screen)
-        boss_group.draw(screen)
-        reward_group.draw(screen)
-        player_group.draw(screen)
-        # Boss health bar
-        for boss in boss_group:
-            pygame.draw.rect(screen, (255,0,0), (boss.rect.x, boss.rect.y - 10, boss.health * 10, 5))
-        # Spawn reward if boss defeated
-        if boss_group.sprites() == [] and current_stage == max_stages - 1 and reward_group.sprites() == []:
-            reward_item = RewardItem(WIDTH//2, HEIGHT//2, "Asset/reward_item.png")
-            reward_group.add(reward_item)
 
     pygame.display.flip()
 
