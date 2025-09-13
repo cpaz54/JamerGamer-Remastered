@@ -1,40 +1,58 @@
-import pygame
+# helpers.py
+from settings import *
 
-def draw_text_wrap(surface, text, font, color, x, y, max_width, line_spacing=5):
+def draw_text_wrap(surface, text, font, color, x, y, max_width):
     """
-    Draw multi-line wrapped text onto a surface.
+    Draws text with wrapping at max_width starting at (x, y)
     """
-    words = text.split(' ')
+    words = text.split(" ")
     lines = []
-    current_line = ''
+    current_line = ""
     for word in words:
-        test_line = current_line + word + ' '
-        if font.size(test_line)[0] < max_width:
+        test_line = current_line + word + " "
+        if font.size(test_line)[0] <= max_width:
             current_line = test_line
         else:
             lines.append(current_line)
-            current_line = word + ' '
+            current_line = word + " "
     lines.append(current_line)
 
     for i, line in enumerate(lines):
-        line_surf = font.render(line, True, color)
-        surface.blit(line_surf, (x, y + i * (font.get_height() + line_spacing)))
+        text_surf = font.render(line, True, color)
+        surface.blit(text_surf, (x, y + i * font.get_linesize()))
 
-def get_last_line_position(displayed_text, font, max_width, x_start, y_start, line_spacing=5):
+def get_last_line_position(text, font, max_width, x, y):
     """
-    Calculate the x, y position for the blinking cursor at the end of the last line.
+    Returns the position (x, y) for the blinking cursor after wrapped text
     """
-    words = displayed_text.split(' ')
+    words = text.split(" ")
     lines = []
-    current_line = ''
+    current_line = ""
     for word in words:
-        test_line = current_line + word + ' '
-        if font.size(test_line)[0] < max_width:
+        test_line = current_line + word + " "
+        if font.size(test_line)[0] <= max_width:
             current_line = test_line
         else:
             lines.append(current_line)
-            current_line = word + ' '
+            current_line = word + " "
     lines.append(current_line)
-    cursor_x = x_start + font.size(lines[-1])[0]
-    cursor_y = y_start + (len(lines) - 1) * (font.get_height() + line_spacing)
+    last_line = lines[-1]
+    cursor_x = x + font.size(last_line)[0]
+    cursor_y = y + (len(lines) - 1) * font.get_linesize()
     return cursor_x, cursor_y
+
+# -------------------------
+# Developer skip function
+# -------------------------
+game_flow = ["menu", "cutscene", "snake", "cutscene2", "platformer", "guitar_hero", "horror"]
+
+def skip_to_next_state(current_state):
+    """
+    Returns the next game state in the flow.
+    If at the end, returns the current state.
+    """
+    if current_state in game_flow:
+        idx = game_flow.index(current_state)
+        if idx + 1 < len(game_flow):
+            return game_flow[idx + 1]
+    return current_state
