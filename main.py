@@ -3,8 +3,7 @@ import sys
 from settings import *
 from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
-from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem, init_platformer, setup_stage
-
+from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -39,11 +38,29 @@ text_index2 = 0
 text_timer2 = 0
 cursor_timer2 = 0
 
+# ----- Cutscene 3 (after platformer) -----
+cutscene3_text = (
+    "Congratulations! You have conquered the platformer challenge and defeated the mighty boss! "
+    "Your journey through the games is complete. Well done, brave adventurer!"
+)
+displayed_text3 = ""
+text_index3 = 0
+text_timer3 = 0
+cursor_timer3 = 0
+
 # ----- Puppet -----
-puppet_open = pygame.image.load("Asset/puppet_open.png").convert_alpha()
-puppet_closed = pygame.image.load("Asset/puppet_closed.png").convert_alpha()
-puppet_open = pygame.transform.scale(puppet_open, (100, 100))
-puppet_closed = pygame.transform.scale(puppet_closed, (100, 100))
+try:
+    puppet_open = pygame.image.load("Asset/puppet_open.png").convert_alpha()
+    puppet_closed = pygame.image.load("Asset/puppet_closed.png").convert_alpha()
+    puppet_open = pygame.transform.scale(puppet_open, (100, 100))
+    puppet_closed = pygame.transform.scale(puppet_closed, (100, 100))
+except pygame.error:
+    # Create placeholder rectangles if images don't exist
+    puppet_open = pygame.Surface((100, 100))
+    puppet_open.fill(NEON_GREEN)
+    puppet_closed = pygame.Surface((100, 100))
+    puppet_closed.fill((0, 100, 0))
+
 puppet_timer = 0
 current_puppet = puppet_closed
 
@@ -68,24 +85,100 @@ enemies = pygame.sprite.Group()
 boss_group = pygame.sprite.Group()
 reward_group = pygame.sprite.Group()
 current_stage = 0
-max_stages = 6
+max_stages = 6  # 5 platforming stages + 1 boss stage
+player = None
 
 # ----- Platformer functions -----
 def setup_stage(stage_num):
+    global player
+    
     platforms.empty()
     hazards.empty()
     enemies.empty()
-    global player
-    if stage_num < max_stages - 1:
+    boss_group.empty()
+    reward_group.empty()
+
+    if stage_num == 0:
+        # Stage 1 - Basic platforming
         platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(150 + stage_num*50, HEIGHT-200, 200, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(200, HEIGHT-150, 150, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, HEIGHT-250, 150, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, HEIGHT-180, 150, 20, "Asset/wood_platform.png"))  # Exit platform
+        hazards.add(Hazard(300, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        enemies.add(PlatEnemy(250, HEIGHT-180, "Asset/enemy1.png"))
+        
+    elif stage_num == 1:
+        # Stage 2 - More challenging
+        platforms.add(Platform(0, HEIGHT-50, WIDTH//2, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(150, HEIGHT-180, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(350, HEIGHT-280, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(550, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(700, HEIGHT-150, 100, 50, "Asset/ground_platform.png"))  # Exit platform
         hazards.add(Hazard(400, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(350, HEIGHT-100, "Asset/enemy1.png"))
-    else:
-        boss_group.empty()
+        hazards.add(Hazard(500, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        enemies.add(PlatEnemy(180, HEIGHT-210, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(580, HEIGHT-230, "Asset/enemy1.png"))
+        
+    elif stage_num == 2:
+        # Stage 3 - Vertical challenges
+        platforms.add(Platform(0, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(100, HEIGHT-150, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(300, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(150, HEIGHT-350, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(500, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, HEIGHT-120, 150, 50, "Asset/ground_platform.png"))  # Exit platform
+        hazards.add(Hazard(250, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        enemies.add(PlatEnemy(130, HEIGHT-180, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(330, HEIGHT-280, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(530, HEIGHT-230, "Asset/enemy1.png"))
+        
+    elif stage_num == 3:
+        # Stage 4 - Gauntlet
+        platforms.add(Platform(0, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(120, HEIGHT-180, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(280, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(440, HEIGHT-200, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(600, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(720, HEIGHT-100, 80, 50, "Asset/ground_platform.png"))  # Exit platform
+        hazards.add(Hazard(200, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(350, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(500, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        enemies.add(PlatEnemy(150, HEIGHT-210, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(310, HEIGHT-150, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(470, HEIGHT-230, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(630, HEIGHT-180, "Asset/enemy1.png"))
+        
+    elif stage_num == 4:
+        # Stage 5 - Final platforming challenge  
+        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(150, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(270, HEIGHT-300, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(390, HEIGHT-180, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(510, HEIGHT-280, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(630, HEIGHT-160, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(740, HEIGHT-100, 60, 50, "Asset/ground_platform.png"))  # Exit platform
+        hazards.add(Hazard(110, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(220, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(340, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(460, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        hazards.add(Hazard(580, HEIGHT-70, 30, 20, "Asset/spike.png"))
+        enemies.add(PlatEnemy(180, HEIGHT-230, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(420, HEIGHT-210, "Asset/enemy1.png"))
+        enemies.add(PlatEnemy(660, HEIGHT-190, "Asset/enemy1.png"))
+        
+    elif stage_num == 5:
+        # Stage 6 - Boss stage
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(100, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(600, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
         boss = Boss(WIDTH//2 - 75, HEIGHT//2 - 75)
         boss_group.add(boss)
-    player.rect.topleft = (50, HEIGHT-100)
+
+    # Reset player position for each stage
+    if player:
+        player.rect.topleft = (50, HEIGHT-100)
+        player.vel_y = 0
+        player.on_ground = False
 
 def init_platformer():
     global player_group, player, platformer_initialized, current_stage
@@ -115,6 +208,9 @@ while running:
                 elif game_state == "cutscene2":
                     displayed_text2 = ""
                     text_index2 = 0
+                elif game_state == "cutscene3":
+                    displayed_text3 = ""
+                    text_index3 = 0
                 elif game_state == "snake":
                     snake = Snake()
                     apple = Apple(snake)
@@ -137,6 +233,8 @@ while running:
                 snake_win = False
             elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text) and event.key == pygame.K_RETURN:
                 game_state = "platformer"
+            elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text) and event.key == pygame.K_RETURN:
+                game_state = "menu"  # Return to menu or end game
 
     # ----- MENU -----
     if game_state == "menu":
@@ -232,69 +330,126 @@ while running:
     elif game_state == "platformer":
         if not platformer_initialized:
             init_platformer()
-    
-        keys = pygame.key.get_pressed()
-        # Update player with attacks
+
+        # Clear screen first to prevent trails
+        screen.fill(BLACK)
+        
+        # Background
+        try:
+            bg = pygame.image.load("Asset/platformer_bg.png").convert()
+            bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))  # Scale to screen size
+            screen.blit(bg, (0, 0))
+        except pygame.error:
+            screen.fill((50, 50, 100))  # Fallback background color
+
+        # Player update and collision handling
         player.update(platforms, enemies, hazards)
+        
+        # Check if player died from hazards
+        if pygame.sprite.spritecollide(player, hazards, False):
+            # Reset player to start of current stage
+            player.rect.topleft = (50, HEIGHT-100)
+            player.vel_y = 0
 
-        # Update enemies
-        for enemy in enemies:
-            enemy.update()
+        # Check if player died from enemies
+        if pygame.sprite.spritecollide(player, enemies, False):
+            # Reset player to start of current stage
+            player.rect.topleft = (50, HEIGHT-100)
+            player.vel_y = 0
 
-        # Update boss
+        # Enemies update
+        enemies.update()
+        
+        # Boss update
         for boss in boss_group:
             boss.update(player_group, enemies)
             boss.minions.update()
 
-        # Check player attacks hitting enemies
+        # Attack collisions
         for attack in player.attack_group:
-            # Enemy collisions
+            # Hit regular enemies
             hit_enemies = pygame.sprite.spritecollide(attack, enemies, True)
             if hit_enemies:
                 attack.kill()
-            # Boss minion collisions
+            
+            # Hit boss minions
             for boss in boss_group:
                 hit_minions = pygame.sprite.spritecollide(attack, boss.minions, True)
                 if hit_minions:
                     attack.kill()
-            # Boss collision
-            for boss in boss_group:
+                
+                # Hit boss
                 if attack.rect.colliderect(boss.rect):
                     boss.health -= 1
                     attack.kill()
+                    if boss.health <= 0:
+                        boss.kill()
 
-        # Stage progression
-        if player.rect.right > WIDTH and current_stage < max_stages - 1:
+        # Stage progression - player reaches right edge
+        if player.rect.right >= WIDTH - 10 and current_stage < max_stages - 1:
             current_stage += 1
             setup_stage(current_stage)
+            print(f"Advanced to stage {current_stage + 1}")  # Debug print
 
-        # Draw all elements
-        screen.fill(BLACK)
+        # Draw everything
         platforms.draw(screen)
         hazards.draw(screen)
         enemies.draw(screen)
+        
+        # Draw boss and minions
         for boss in boss_group:
             screen.blit(boss.image, boss.rect)
             boss.minions.draw(screen)
+            
         reward_group.draw(screen)
         player_group.draw(screen)
         player.attack_group.draw(screen)
 
         # Boss health bar
-        for boss in boss_group:
-            pygame.draw.rect(screen, (255, 0, 0), (boss.rect.x, boss.rect.y - 10, boss.health * 5, 8))
+        if current_stage == max_stages - 1:  # only in boss stage
+            for boss in boss_group:
+                if boss.health > 0:
+                    bar_width = max(0, boss.health * 5)
+                    pygame.draw.rect(screen, (255, 0, 0), (boss.rect.x, boss.rect.y - 15, bar_width, 10))
+                    pygame.draw.rect(screen, (255, 255, 255), (boss.rect.x, boss.rect.y - 15, 150, 10), 2)
 
-        # Spawn reward if boss defeated
-        if boss_group.sprites() == [] and current_stage == max_stages - 1 and reward_group.sprites() == []:
+        # Reward on boss defeat
+        if len(boss_group.sprites()) == 0 and current_stage == max_stages - 1 and len(reward_group.sprites()) == 0:
             reward_item = RewardItem(WIDTH // 2, HEIGHT // 2, "Asset/reward_item.png")
             reward_group.add(reward_item)
 
-        # Check reward pickup
+        # Reward pickup - transition to next cutscene
         for reward in reward_group:
             if player.rect.colliderect(reward.rect):
                 game_state = "cutscene3"
                 reward_group.empty()
                 platformer_initialized = False
+
+        # Stage indicator
+        stage_text = small_font.render(f"Stage: {current_stage + 1}/{max_stages}", True, NEON_GREEN)
+        screen.blit(stage_text, (10, 10))
+
+    # ----- CUTSCENE 3 -----
+    elif game_state == "cutscene3":
+        puppet_timer += 1
+        if puppet_timer % 10 == 0:
+            current_puppet = puppet_open if current_puppet == puppet_closed else puppet_closed
+        screen.fill(BLACK)
+        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 4 - 50))
+        text_timer3 += 1
+        if text_timer3 % typing_speed == 0 and text_index3 < len(cutscene3_text):
+            displayed_text3 += cutscene3_text[text_index3]
+            text_index3 += 1
+        draw_text_wrap(screen, displayed_text3, font, NEON_GREEN, 20, text_y_start, text_max_width)
+        if text_index3 < len(cutscene3_text):
+            cursor_timer3 += 1
+            if cursor_timer3 % 30 < 15:
+                cursor_x, cursor_y = get_last_line_position(displayed_text3, font, text_max_width, 20, text_y_start)
+                cursor_surf = font.render("|", True, NEON_GREEN)
+                screen.blit(cursor_surf, (cursor_x, cursor_y))
+        else:
+            prompt_surface = small_font.render("Press Enter to return to menu...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
 
     pygame.display.flip()
 
