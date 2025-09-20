@@ -99,72 +99,273 @@ def setup_stage(stage_num):
     reward_group.empty()
 
     if stage_num == 0:
-        # Stage 1 - Basic platforming
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(200, HEIGHT-150, 150, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, HEIGHT-250, 150, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, HEIGHT-180, 150, 20, "Asset/wood_platform.png"))  # Exit platform
-        hazards.add(Hazard(300, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(250, HEIGHT-180, "Asset/enemy1.png"))
+        # Stage 1 - Stepped platforms with complete floor coverage
+        # Ground floor - complete coverage
+        platforms.add(Platform(0, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(250, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(500, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(700, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        
+        # Second level platforms - reduced density
+        platforms.add(Platform(150, HEIGHT-150, 120, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, HEIGHT-150, 120, 20, "Asset/wood_platform.png"))
+        
+        # Third level platforms - reduced density
+        platforms.add(Platform(250, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(550, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
+        
+        # Fourth level platforms - reduced density
+        platforms.add(Platform(350, HEIGHT-350, 80, 20, "Asset/wood_platform.png"))
+        
+        # Ceiling platforms for verticality - reduced density
+        platforms.add(Platform(100, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(500, 50, 100, 20, "Asset/wood_platform.png"))
+        
+        hazards.add(Hazard(250, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(450, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        
+        # Varied enemy patterns
+        enemy1 = PlatEnemy(130, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
+        enemy1.patrol_pattern = "back_forth"
+        enemies.add(enemy1)
+        enemy2 = PlatEnemy(380, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=70)
+        enemy2.patrol_pattern = "circle"
+        enemies.add(enemy2)
+        enemy3 = PlatEnemy(630, HEIGHT-180, "Asset/enemy1.png", patrol_range=90, aggro_range=85)
+        enemy3.patrol_pattern = "stationary"
+        enemies.add(enemy3)
         
     elif stage_num == 1:
-        # Stage 2 - More challenging
-        platforms.add(Platform(0, HEIGHT-50, WIDTH//2, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(150, HEIGHT-180, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(350, HEIGHT-280, 100, 20, "Asset/wood_platform.png"))
+        # Stage 2 - Vertical column layout with complete coverage
+        # Ground floor - complete coverage
+        platforms.add(Platform(0, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(200, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(400, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(600, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        
+        # Column 1 - Left side - reduced density
+        platforms.add(Platform(50, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(50, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(50, 150, 50, 20, "Asset/wood_platform.png"))
+        
+        # Column 2 - Center left - reduced density
+        platforms.add(Platform(250, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, HEIGHT-350, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, 50, 50, 20, "Asset/wood_platform.png"))
+        
+        # Column 3 - Center right - reduced density
+        platforms.add(Platform(450, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, HEIGHT-350, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, 150, 50, 20, "Asset/wood_platform.png"))
+        
+        # Column 4 - Right side - reduced density
+        platforms.add(Platform(650, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, 50, 50, 20, "Asset/wood_platform.png"))
+        
+        # Connecting platforms - reduced density
+        platforms.add(Platform(150, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(350, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(550, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(700, HEIGHT-150, 100, 50, "Asset/ground_platform.png"))  # Exit platform
-        hazards.add(Hazard(400, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(500, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(180, HEIGHT-210, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(580, HEIGHT-230, "Asset/enemy1.png"))
+        
+        hazards.add(Hazard(175, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(375, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(575, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        
+        # Mixed enemy patterns
+        enemy1 = PlatEnemy(75, HEIGHT-180, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
+        enemy1.patrol_pattern = "back_forth"
+        enemies.add(enemy1)
+        enemy2 = PlatEnemy(275, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=80)
+        enemy2.patrol_pattern = "stationary"
+        enemies.add(enemy2)
+        enemy3 = PlatEnemy(475, HEIGHT-180, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
+        enemy3.patrol_pattern = "circle"
+        enemies.add(enemy3)
+        enemy4 = PlatEnemy(675, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=85)
+        enemy4.patrol_pattern = "back_forth"
+        enemies.add(enemy4)
         
     elif stage_num == 2:
-        # Stage 3 - Vertical challenges
-        platforms.add(Platform(0, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(100, HEIGHT-150, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(300, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(150, HEIGHT-350, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(500, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, HEIGHT-120, 150, 50, "Asset/ground_platform.png"))  # Exit platform
-        hazards.add(Hazard(250, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(130, HEIGHT-180, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(330, HEIGHT-280, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(530, HEIGHT-230, "Asset/enemy1.png"))
+        # Stage 3 - Zigzag pattern with complete coverage
+        # Ground floor - complete coverage
+        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(150, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(300, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(450, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(600, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(750, HEIGHT-50, 50, 50, "Asset/ground_platform.png"))
+        
+        # Zigzag pattern - alternating heights - reduced density
+        platforms.add(Platform(0, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(240, HEIGHT-250, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(480, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(720, HEIGHT-250, 80, 20, "Asset/wood_platform.png"))
+        
+        # Third level - reduced density
+        platforms.add(Platform(120, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(360, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(600, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
+        
+        # Ceiling platforms - reduced density
+        platforms.add(Platform(75, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(375, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(675, 50, 100, 20, "Asset/wood_platform.png"))
+        
+        # High platforms for verticality - reduced density
+        platforms.add(Platform(200, 100, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(500, 100, 60, 20, "Asset/wood_platform.png"))
+        
+        hazards.add(Hazard(125, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(275, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(425, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(575, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        
+        # Vertical-focused enemies
+        enemy1 = PlatEnemy(40, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=85)
+        enemy1.patrol_pattern = "back_forth"
+        enemies.add(enemy1)
+        enemy2 = PlatEnemy(160, HEIGHT-280, "Asset/enemy1.png", patrol_range=100, aggro_range=95)
+        enemy2.patrol_pattern = "circle"
+        enemies.add(enemy2)
+        enemy3 = PlatEnemy(280, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=75)
+        enemy3.patrol_pattern = "stationary"
+        enemies.add(enemy3)
+        enemy4 = PlatEnemy(400, HEIGHT-280, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
+        enemy4.patrol_pattern = "back_forth"
+        enemies.add(enemy4)
         
     elif stage_num == 3:
-        # Stage 4 - Gauntlet
-        platforms.add(Platform(0, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(120, HEIGHT-180, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(280, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(440, HEIGHT-200, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(600, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(720, HEIGHT-100, 80, 50, "Asset/ground_platform.png"))  # Exit platform
-        hazards.add(Hazard(200, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(350, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(500, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(150, HEIGHT-210, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(310, HEIGHT-150, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(470, HEIGHT-230, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(630, HEIGHT-180, "Asset/enemy1.png"))
+        # Stage 4 - Layered approach with complete coverage
+        # Ground floor - complete coverage
+        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(125, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(250, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(375, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(500, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(625, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(750, HEIGHT-50, 50, 50, "Asset/ground_platform.png"))
+        
+        # Layer 1 - Low platforms - reduced density
+        platforms.add(Platform(62, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(437, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(625, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
+        
+        # Layer 2 - Mid platforms - reduced density
+        platforms.add(Platform(112, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(300, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(487, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(675, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
+        
+        # Layer 3 - High platforms - reduced density
+        platforms.add(Platform(62, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(437, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(625, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
+        
+        # Layer 4 - Very high platforms - reduced density
+        platforms.add(Platform(112, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(300, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(487, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(675, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
+        
+        # Ceiling platforms - reduced density
+        platforms.add(Platform(62, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(437, 50, 100, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(625, 50, 100, 20, "Asset/wood_platform.png"))
+        
+        hazards.add(Hazard(112, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(237, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(362, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(487, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(612, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        
+        # Aggressive enemies with varied patterns
+        enemy1 = PlatEnemy(40, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
+        enemy1.patrol_pattern = "back_forth"
+        enemies.add(enemy1)
+        enemy2 = PlatEnemy(165, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
+        enemy2.patrol_pattern = "circle"
+        enemies.add(enemy2)
+        enemy3 = PlatEnemy(290, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=85)
+        enemy3.patrol_pattern = "stationary"
+        enemies.add(enemy3)
+        enemy4 = PlatEnemy(415, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=95)
+        enemy4.patrol_pattern = "back_forth"
+        enemies.add(enemy4)
+        enemy5 = PlatEnemy(540, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
+        enemy5.patrol_pattern = "circle"
+        enemies.add(enemy5)
         
     elif stage_num == 4:
-        # Stage 5 - Final platforming challenge  
-        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(150, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(270, HEIGHT-300, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(390, HEIGHT-180, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(510, HEIGHT-280, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(630, HEIGHT-160, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(740, HEIGHT-100, 60, 50, "Asset/ground_platform.png"))  # Exit platform
-        hazards.add(Hazard(110, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(220, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(340, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(460, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        hazards.add(Hazard(580, HEIGHT-70, 30, 20, "Asset/spike.png"))
-        enemies.add(PlatEnemy(180, HEIGHT-230, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(420, HEIGHT-210, "Asset/enemy1.png"))
-        enemies.add(PlatEnemy(660, HEIGHT-190, "Asset/enemy1.png"))
+        # Stage 5 - Pyramid/stepped approach with complete coverage
+        # Ground floor - complete coverage
+        platforms.add(Platform(0, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(100, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(200, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(300, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(400, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(500, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(600, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
+        platforms.add(Platform(700, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        
+        # Step 1 - Low platforms - reduced density
+        platforms.add(Platform(100, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(300, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(500, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(700, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
+        
+        # Step 2 - Mid platforms - reduced density
+        platforms.add(Platform(150, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(350, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(550, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(750, HEIGHT-200, 50, 20, "Asset/wood_platform.png"))
+        
+        # Step 3 - High platforms - reduced density
+        platforms.add(Platform(200, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(400, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(600, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
+        
+        # Step 4 - Very high platforms - reduced density
+        platforms.add(Platform(250, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
+        
+        # Step 5 - Peak platforms - reduced density
+        platforms.add(Platform(300, HEIGHT-440, 15, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(500, HEIGHT-440, 15, 20, "Asset/wood_platform.png"))
+        
+        # Ceiling platforms - reduced density
+        platforms.add(Platform(50, 50, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(250, 50, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(450, 50, 80, 20, "Asset/wood_platform.png"))
+        platforms.add(Platform(650, 50, 80, 20, "Asset/wood_platform.png"))
+        
+        hazards.add(Hazard(90, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(190, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(290, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(390, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(490, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(590, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        
+        # Elite enemies with high aggro
+        enemy1 = PlatEnemy(80, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=120)
+        enemy1.patrol_pattern = "back_forth"
+        enemies.add(enemy1)
+        enemy2 = PlatEnemy(180, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=110)
+        enemy2.patrol_pattern = "circle"
+        enemies.add(enemy2)
+        enemy3 = PlatEnemy(280, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
+        enemy3.patrol_pattern = "stationary"
+        enemies.add(enemy3)
+        enemy4 = PlatEnemy(380, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=115)
+        enemy4.patrol_pattern = "back_forth"
+        enemies.add(enemy4)
+        enemy5 = PlatEnemy(480, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=105)
+        enemy5.patrol_pattern = "circle"
+        enemies.add(enemy5)
         
     elif stage_num == 5:
         # Stage 6 - Boss stage
@@ -357,13 +558,13 @@ while running:
             player.rect.topleft = (50, HEIGHT-100)
             player.vel_y = 0
 
-        # Enemies update
-        enemies.update()
+        # Enemies update (pass player for aggro detection)
+        enemies.update(player)
         
         # Boss update
         for boss in boss_group:
             boss.update(player_group, enemies)
-            boss.minions.update()
+            boss.minions.update(player)
 
         # Attack collisions
         for attack in player.attack_group:
@@ -415,15 +616,18 @@ while running:
 
         # Reward on boss defeat
         if len(boss_group.sprites()) == 0 and current_stage == max_stages - 1 and len(reward_group.sprites()) == 0:
-            reward_item = RewardItem(WIDTH // 2, HEIGHT // 2, "Asset/reward_item.png")
+            reward_item = RewardItem(WIDTH - 100, HEIGHT - 100, "Asset/reward_item.png")
             reward_group.add(reward_item)
 
-        # Reward pickup - transition to next cutscene
+        # Reward pickup - check if player attacks it
         for reward in reward_group:
-            if player.rect.colliderect(reward.rect):
-                game_state = "cutscene3"
-                reward_group.empty()
-                platformer_initialized = False
+            # Check if any attack hits the reward
+            for attack in player.attack_group:
+                if attack.rect.colliderect(reward.rect):
+                    game_state = "cutscene3"
+                    reward_group.empty()
+                    platformer_initialized = False
+                    break
 
         # Stage indicator
         stage_text = small_font.render(f"Stage: {current_stage + 1}/{max_stages}", True, NEON_GREEN)
