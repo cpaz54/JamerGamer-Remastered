@@ -1,9 +1,38 @@
 import pygame
 import sys
+import os
 from settings import *
 from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
 from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
+
+# Adventure game integration
+def run_adventure_game():
+    """Wrapper function to run the adventure game and return completion status"""
+    # Change to adventure game directory
+    original_dir = os.getcwd()
+    adventure_dir = os.path.join(original_dir, "Adventure Game")
+    
+    try:
+        os.chdir(adventure_dir)
+        
+        # Import adventure game module
+        sys.path.insert(0, adventure_dir)
+        import adventure_module
+        
+        # Run the adventure game
+        adventure_completed = adventure_module.run_adventure_game(screen)
+        
+        return adventure_completed
+        
+    except Exception as e:
+        print(f"Error running adventure game: {e}")
+        return False
+    finally:
+        # Restore original directory and path
+        os.chdir(original_dir)
+        if adventure_dir in sys.path:
+            sys.path.remove(adventure_dir)
 
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -40,13 +69,25 @@ cursor_timer2 = 0
 
 # ----- Cutscene 3 (after platformer) -----
 cutscene3_text = (
-    "Congratulations! You have conquered the platformer challenge and defeated the mighty boss! "
-    "Your journey through the games is complete. Well done, brave adventurer!"
+    "Excellent work! You have conquered the platformer challenge and defeated the mighty boss! "
+    "Now prepare yourself for the final test: an epic adventure through mysterious lands. "
+    "Your skills will be tested in ways you've never experienced before!"
 )
 displayed_text3 = ""
 text_index3 = 0
 text_timer3 = 0
 cursor_timer3 = 0
+
+# ----- Cutscene 4 (after adventure game) -----
+cutscene4_text = (
+    "Incredible! You have completed the ultimate adventure and defeated the ghostly boss! "
+    "Your journey through all the games is now complete. You have proven yourself to be "
+    "a true master of all challenges. Congratulations, legendary adventurer!"
+)
+displayed_text4 = ""
+text_index4 = 0
+text_timer4 = 0
+cursor_timer4 = 0
 
 # ----- Puppet -----
 try:
@@ -87,6 +128,9 @@ reward_group = pygame.sprite.Group()
 current_stage = 0
 max_stages = 6  # 5 platforming stages + 1 boss stage
 player = None
+
+# ----- Adventure game variables -----
+adventure_completed = False
 
 # ----- Platformer functions -----
 def setup_stage(stage_num):
@@ -412,12 +456,17 @@ while running:
                 elif game_state == "cutscene3":
                     displayed_text3 = ""
                     text_index3 = 0
+                elif game_state == "cutscene4":
+                    displayed_text4 = ""
+                    text_index4 = 0
                 elif game_state == "snake":
                     snake = Snake()
                     apple = Apple(snake)
                     snake_win = False
                 elif game_state == "platformer":
                     platformer_initialized = False
+                elif game_state == "adventure":
+                    adventure_completed = False
 
             # State-specific Enter key
             elif game_state == "menu" and event.key == pygame.K_RETURN:
@@ -435,6 +484,11 @@ while running:
             elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text) and event.key == pygame.K_RETURN:
                 game_state = "platformer"
             elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text) and event.key == pygame.K_RETURN:
+                game_state = "adventure"
+                adventure_completed = False
+            elif game_state == "adventure" and adventure_completed and event.key == pygame.K_RETURN:
+                game_state = "cutscene4"
+            elif game_state == "cutscene4" and text_index4 >= len(cutscene4_text) and event.key == pygame.K_RETURN:
                 game_state = "menu"  # Return to menu or end game
 
     # ----- MENU -----
@@ -633,7 +687,25 @@ while running:
         stage_text = small_font.render(f"Stage: {current_stage + 1}/{max_stages}", True, NEON_GREEN)
         screen.blit(stage_text, (10, 10))
 
-    # ----- CUTSCENE 3 -----
+    # ----- ADVENTURE GAME -----
+    elif game_state == "adventure":
+        # Run the adventure game
+        adventure_completed = run_adventure_game()
+        
+        # After adventure game completes, show completion message
+        screen.fill(BLACK)
+        if adventure_completed:
+            message_surface = font.render("ADVENTURE COMPLETED!", True, NEON_GREEN)
+            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+        else:
+            message_surface = font.render("Adventure game ended unexpectedly", True, NEON_GREEN)
+            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
+    # ----- CUTSCENE 3 (after platformer) -----
     elif game_state == "cutscene3":
         puppet_timer += 1
         if puppet_timer % 10 == 0:
@@ -649,6 +721,28 @@ while running:
             cursor_timer3 += 1
             if cursor_timer3 % 30 < 15:
                 cursor_x, cursor_y = get_last_line_position(displayed_text3, font, text_max_width, 20, text_y_start)
+                cursor_surf = font.render("|", True, NEON_GREEN)
+                screen.blit(cursor_surf, (cursor_x, cursor_y))
+        else:
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
+    # ----- CUTSCENE 4 (after adventure game) -----
+    elif game_state == "cutscene4":
+        puppet_timer += 1
+        if puppet_timer % 10 == 0:
+            current_puppet = puppet_open if current_puppet == puppet_closed else puppet_closed
+        screen.fill(BLACK)
+        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 4 - 50))
+        text_timer4 += 1
+        if text_timer4 % typing_speed == 0 and text_index4 < len(cutscene4_text):
+            displayed_text4 += cutscene4_text[text_index4]
+            text_index4 += 1
+        draw_text_wrap(screen, displayed_text4, font, NEON_GREEN, 20, text_y_start, text_max_width)
+        if text_index4 < len(cutscene4_text):
+            cursor_timer4 += 1
+            if cursor_timer4 % 30 < 15:
+                cursor_x, cursor_y = get_last_line_position(displayed_text4, font, text_max_width, 20, text_y_start)
                 cursor_surf = font.render("|", True, NEON_GREEN)
                 screen.blit(cursor_surf, (cursor_x, cursor_y))
         else:
