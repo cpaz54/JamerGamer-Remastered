@@ -24,6 +24,7 @@ def run_doom_game(screen):
         
         # Run the doom game as a subprocess
         print("Starting doom game...")
+        print(f"Skip file path: {skip_file}")
         process = subprocess.Popen([sys.executable, "main.py"], 
                                  cwd=doom_dir,
                                  stdout=subprocess.PIPE, 
@@ -36,10 +37,17 @@ def run_doom_game(screen):
             while process.poll() is None:  # While process is running
                 if os.path.exists(skip_file):
                     print("Skip signal detected, terminating doom game...")
-                    process.terminate()
+                    try:
+                        process.terminate()
+                        # Give it a moment to terminate
+                        time.sleep(0.5)
+                        if process.poll() is None:
+                            process.kill()  # Force kill if terminate didn't work
+                    except:
+                        pass
                     skip_detected.set()
                     break
-                time.sleep(0.1)  # Check every 100ms
+                time.sleep(0.05)  # Check every 50ms for faster response
         
         skip_thread = threading.Thread(target=monitor_skip)
         skip_thread.daemon = True
@@ -50,7 +58,7 @@ def run_doom_game(screen):
             if skip_detected.is_set():
                 print("Doom game was skipped")
                 return "skipped"
-            time.sleep(0.1)  # Check every 100ms
+            time.sleep(0.05)  # Check every 50ms for faster response
         
         # Process has finished, get the output
         stdout, stderr = process.communicate()

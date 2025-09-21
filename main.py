@@ -101,6 +101,7 @@ text_index5 = 0
 text_timer5 = 0
 cursor_timer5 = 0
 
+
 # ----- Puppet -----
 try:
     puppet_open = pygame.image.load("Asset/puppet_open.png").convert_alpha()
@@ -131,6 +132,11 @@ snake_flash_timer = 0
 
 # ----- Platformer variables -----
 platformer_initialized = False
+
+# ----- Doom game variables -----
+doom_game_running = False
+doom_game_launched = False
+
 player_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
 hazards = pygame.sprite.Group()
@@ -145,7 +151,6 @@ player = None
 adventure_completed = False
 
 # ----- Doom game variables -----
-doom_completed = False
 
 # ----- Platformer functions -----
 def setup_stage(stage_num):
@@ -511,9 +516,8 @@ while running:
                     game_state = "cutscene4"
                 elif game_state == "cutscene4" and text_index4 >= len(cutscene4_text):
                     game_state = "doom"
-                    doom_completed = False
-                elif game_state == "doom" and doom_completed:
-                    game_state = "cutscene5"
+                    doom_game_running = False
+                    doom_game_launched = False
                 elif game_state == "cutscene5" and text_index5 >= len(cutscene5_text):
                     game_state = "menu"  # Return to menu or end game
 
@@ -797,30 +801,45 @@ while running:
 
     # ----- DOOM GAME -----
     elif game_state == "doom":
-        # Run the doom game
-        doom_result = run_doom_game(screen)
-        
-        # Handle different return values
-        if doom_result == "skipped":
-            # Skip directly to next cutscene
-            game_state = "cutscene5"
-            displayed_text5 = ""
-            text_index5 = 0
-        elif doom_result:
-            # Doom completed normally
-            doom_completed = True
-            screen.fill(BLACK)
-            message_surface = font.render("DOOM VICTORY!", True, NEON_GREEN)
-            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
-            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
-            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+        if not doom_game_launched:
+            # Launch the doom game only once
+            doom_game_launched = True
+            doom_game_running = True
+            doom_result = run_doom_game(screen)
+            
+            # Handle different return values
+            if doom_result == "skipped":
+                # Skip directly to next cutscene
+                game_state = "cutscene5"
+                displayed_text5 = ""
+                text_index5 = 0
+                doom_game_running = False
+                # Continue to next frame to avoid staying in doom state
+                continue
+            elif doom_result:
+                # Doom completed normally - go directly to cutscene5
+                game_state = "cutscene5"
+                displayed_text5 = ""
+                text_index5 = 0
+                doom_game_running = False
+                # Continue to next frame to avoid staying in doom state
+                continue
+            else:
+                # Doom ended unexpectedly
+                doom_game_running = False
+                screen.fill(BLACK)
+                message_surface = font.render("Doom game ended unexpectedly", True, NEON_GREEN)
+                screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+                prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+                screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
         else:
-            # Doom ended unexpectedly
+            # Doom game already launched, show loading or waiting screen
             screen.fill(BLACK)
-            message_surface = font.render("Doom game ended unexpectedly", True, NEON_GREEN)
+            message_surface = font.render("DOOM GAME", True, NEON_GREEN)
             screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
-            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            prompt_surface = small_font.render("Press * to skip", True, NEON_GREEN)
             screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
 
     # ----- CUTSCENE 5 (after doom game) -----
     elif game_state == "cutscene5":
@@ -841,8 +860,9 @@ while running:
                 cursor_surf = font.render("|", True, NEON_GREEN)
                 screen.blit(cursor_surf, (cursor_x, cursor_y))
         else:
-            prompt_surface = small_font.render("Press Enter to return to menu...", True, NEON_GREEN)
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
             screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
 
     pygame.display.flip()
 
