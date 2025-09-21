@@ -64,6 +64,9 @@ def run_adventure_game(screen):
                 # Check for escape key to return to main game
                 if event.key == pygame.K_ESCAPE:
                     return player.ghost_boss_dead
+                # Check for skip key (*) to return to main game
+                if event.unicode == "*":
+                    return "skipped"  # Skip the adventure game
                     
         if player.item_timer_count < player.item_timer_length: #makes count equal to length eventually
             player.item_timer_count += 1

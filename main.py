@@ -5,6 +5,7 @@ from settings import *
 from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
 from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
+from doom_wrapper import run_doom_game
 
 # Adventure game integration
 def run_adventure_game():
@@ -81,13 +82,24 @@ cursor_timer3 = 0
 # ----- Cutscene 4 (after adventure game) -----
 cutscene4_text = (
     "Incredible! You have completed the ultimate adventure and defeated the ghostly boss! "
-    "Your journey through all the games is now complete. You have proven yourself to be "
-    "a true master of all challenges. Congratulations, legendary adventurer!"
+    "But your journey is not yet over. Prepare yourself for the final challenge: "
+    "a battle against waves of demonic enemies in a classic first-person shooter!"
 )
 displayed_text4 = ""
 text_index4 = 0
 text_timer4 = 0
 cursor_timer4 = 0
+
+# ----- Cutscene 5 (after doom game) -----
+cutscene5_text = (
+    "VICTORY! You have conquered all the demonic waves and proven yourself a true warrior! "
+    "Your journey through all the games is now complete. You have mastered every challenge: "
+    "Snake, Platformer, Adventure, and Doom. You are a legendary gaming champion!"
+)
+displayed_text5 = ""
+text_index5 = 0
+text_timer5 = 0
+cursor_timer5 = 0
 
 # ----- Puppet -----
 try:
@@ -131,6 +143,9 @@ player = None
 
 # ----- Adventure game variables -----
 adventure_completed = False
+
+# ----- Doom game variables -----
+doom_completed = False
 
 # ----- Platformer functions -----
 def setup_stage(stage_num):
@@ -446,50 +461,62 @@ while running:
         if event.type == pygame.KEYDOWN:
             # Developer skip
             if event.unicode == "*":
-                game_state = skip_to_next_state(game_state)
-                if game_state == "cutscene":
-                    displayed_text = ""
-                    text_index = 0
-                elif game_state == "cutscene2":
-                    displayed_text2 = ""
-                    text_index2 = 0
-                elif game_state == "cutscene3":
-                    displayed_text3 = ""
-                    text_index3 = 0
-                elif game_state == "cutscene4":
-                    displayed_text4 = ""
-                    text_index4 = 0
-                elif game_state == "snake":
+                # Special handling for doom game skip
+                if game_state == "doom":
+                    # Create skip signal file for doom game
+                    skip_file = "doom_skip_signal.txt"
+                    with open(skip_file, "w") as f:
+                        f.write("skip")
+                    print("Skip signal sent to doom game")
+                else:
+                    # Normal skip for other states
+                    game_state = skip_to_next_state(game_state)
+                    if game_state == "cutscene":
+                        displayed_text = ""
+                        text_index = 0
+                    elif game_state == "cutscene2":
+                        displayed_text2 = ""
+                        text_index2 = 0
+                    elif game_state == "cutscene3":
+                        displayed_text3 = ""
+                        text_index3 = 0
+                    elif game_state == "cutscene4":
+                        displayed_text4 = ""
+                        text_index4 = 0
+                    elif game_state == "cutscene5":
+                        displayed_text5 = ""
+                        text_index5 = 0
+            
+            # Handle other key events
+            if event.key == pygame.K_RETURN:
+                if game_state == "menu":
+                    game_state = "cutscene"
+                elif game_state == "cutscene" and text_index >= len(cutscene_text):
+                    game_state = "snake"
                     snake = Snake()
                     apple = Apple(snake)
                     snake_win = False
-                elif game_state == "platformer":
-                    platformer_initialized = False
-                elif game_state == "adventure":
+                elif game_state == "snake" and snake is not None and not snake.alive:
+                    snake = Snake()
+                    apple = Apple(snake)
+                    snake_win = False
+                elif game_state == "snake" and snake is not None and snake.size >= 20 and snake_win:
+                    game_state = "cutscene2"
+                elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text):
+                    game_state = "platformer"
+                elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text):
+                    game_state = "adventure"
                     adventure_completed = False
+                elif game_state == "adventure" and adventure_completed:
+                    game_state = "cutscene4"
+                elif game_state == "cutscene4" and text_index4 >= len(cutscene4_text):
+                    game_state = "doom"
+                    doom_completed = False
+                elif game_state == "doom" and doom_completed:
+                    game_state = "cutscene5"
+                elif game_state == "cutscene5" and text_index5 >= len(cutscene5_text):
+                    game_state = "menu"  # Return to menu or end game
 
-            # State-specific Enter key
-            elif game_state == "menu" and event.key == pygame.K_RETURN:
-                game_state = "cutscene"
-            elif game_state == "cutscene" and text_index >= len(cutscene_text) and event.key == pygame.K_RETURN:
-                game_state = "snake"
-                snake = Snake()
-                apple = Apple(snake)
-            elif game_state == "snake" and snake_win and event.key == pygame.K_RETURN:
-                game_state = "cutscene2"
-            elif game_state == "snake" and not snake.alive and event.key == pygame.K_RETURN:
-                snake = Snake()
-                apple = Apple(snake)
-                snake_win = False
-            elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text) and event.key == pygame.K_RETURN:
-                game_state = "platformer"
-            elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text) and event.key == pygame.K_RETURN:
-                game_state = "adventure"
-                adventure_completed = False
-            elif game_state == "adventure" and adventure_completed and event.key == pygame.K_RETURN:
-                game_state = "cutscene4"
-            elif game_state == "cutscene4" and text_index4 >= len(cutscene4_text) and event.key == pygame.K_RETURN:
-                game_state = "menu"  # Return to menu or end game
 
     # ----- MENU -----
     if game_state == "menu":
@@ -524,31 +551,41 @@ while running:
 
     # ----- SNAKE -----
     elif game_state == "snake":
+        # Initialize snake and apple if they don't exist
+        if snake is None:
+            snake = Snake()
+            apple = Apple(snake)
+            snake_win = False
+        
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            snake.change_direction(0, -1)
-        elif keys[pygame.K_DOWN]:
-            snake.change_direction(0, 1)
-        elif keys[pygame.K_LEFT]:
-            snake.change_direction(-1, 0)
-        elif keys[pygame.K_RIGHT]:
-            snake.change_direction(1, 0)
+        if snake is not None:
+            if keys[pygame.K_UP]:
+                snake.change_direction(0, -1)
+            elif keys[pygame.K_DOWN]:
+                snake.change_direction(0, 1)
+            elif keys[pygame.K_LEFT]:
+                snake.change_direction(-1, 0)
+            elif keys[pygame.K_RIGHT]:
+                snake.change_direction(1, 0)
 
         snake_timer += 1
         if snake_timer >= snake_speed:
             snake_timer = 0
-            snake.update()
-            if snake.alive and snake.body[0] == apple.position:
-                snake.grow = True
-                apple.position = apple.random_position(snake)
+            if snake is not None:
+                snake.update()
+                if snake.alive and apple is not None and snake.body[0] == apple.position:
+                    snake.grow = True
+                    apple.position = apple.random_position(snake)
 
         screen.fill(BLACK)
-        apple.draw(screen)
-        snake.draw(screen)
-        if not snake.alive:
+        if apple is not None:
+            apple.draw(screen)
+        if snake is not None:
+            snake.draw(screen)
+        if snake is not None and not snake.alive:
             message_surface = font.render("Try again (Reach Size = 20 to continue)", True, NEON_GREEN)
             screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
-        if snake.size >= 20 and not snake_win:
+        if snake is not None and snake.size >= 20 and not snake_win:
             snake_win = True
             snake_flash_timer = 0
         if snake_win:
@@ -690,16 +727,25 @@ while running:
     # ----- ADVENTURE GAME -----
     elif game_state == "adventure":
         # Run the adventure game
-        adventure_completed = run_adventure_game()
+        adventure_result = run_adventure_game()
         
-        # After adventure game completes, show completion message
-        screen.fill(BLACK)
-        if adventure_completed:
+        # Handle different return values
+        if adventure_result == "skipped":
+            # Skip directly to next cutscene
+            game_state = "cutscene4"
+            displayed_text4 = ""
+            text_index4 = 0
+        elif adventure_result:
+            # Adventure completed normally
+            adventure_completed = True
+            screen.fill(BLACK)
             message_surface = font.render("ADVENTURE COMPLETED!", True, NEON_GREEN)
             screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
             prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
             screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
         else:
+            # Adventure ended unexpectedly
+            screen.fill(BLACK)
             message_surface = font.render("Adventure game ended unexpectedly", True, NEON_GREEN)
             screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
             prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
@@ -743,6 +789,55 @@ while running:
             cursor_timer4 += 1
             if cursor_timer4 % 30 < 15:
                 cursor_x, cursor_y = get_last_line_position(displayed_text4, font, text_max_width, 20, text_y_start)
+                cursor_surf = font.render("|", True, NEON_GREEN)
+                screen.blit(cursor_surf, (cursor_x, cursor_y))
+        else:
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
+    # ----- DOOM GAME -----
+    elif game_state == "doom":
+        # Run the doom game
+        doom_result = run_doom_game(screen)
+        
+        # Handle different return values
+        if doom_result == "skipped":
+            # Skip directly to next cutscene
+            game_state = "cutscene5"
+            displayed_text5 = ""
+            text_index5 = 0
+        elif doom_result:
+            # Doom completed normally
+            doom_completed = True
+            screen.fill(BLACK)
+            message_surface = font.render("DOOM VICTORY!", True, NEON_GREEN)
+            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+        else:
+            # Doom ended unexpectedly
+            screen.fill(BLACK)
+            message_surface = font.render("Doom game ended unexpectedly", True, NEON_GREEN)
+            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
+    # ----- CUTSCENE 5 (after doom game) -----
+    elif game_state == "cutscene5":
+        puppet_timer += 1
+        if puppet_timer % 10 == 0:
+            current_puppet = puppet_open if current_puppet == puppet_closed else puppet_closed
+        screen.fill(BLACK)
+        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 4 - 50))
+        text_timer5 += 1
+        if text_timer5 % typing_speed == 0 and text_index5 < len(cutscene5_text):
+            displayed_text5 += cutscene5_text[text_index5]
+            text_index5 += 1
+        draw_text_wrap(screen, displayed_text5, font, NEON_GREEN, 20, text_y_start, text_max_width)
+        if text_index5 < len(cutscene5_text):
+            cursor_timer5 += 1
+            if cursor_timer5 % 30 < 15:
+                cursor_x, cursor_y = get_last_line_position(displayed_text5, font, text_max_width, 20, text_y_start)
                 cursor_surf = font.render("|", True, NEON_GREEN)
                 screen.blit(cursor_surf, (cursor_x, cursor_y))
         else:
