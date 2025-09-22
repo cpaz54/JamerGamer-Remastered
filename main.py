@@ -6,6 +6,7 @@ from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
 from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
 from doom_wrapper import run_doom_game
+from guitar_hero_integrated import GuitarHeroGame
 
 # Adventure game integration
 def run_adventure_game():
@@ -71,13 +72,24 @@ cursor_timer2 = 0
 # ----- Cutscene 3 (after platformer) -----
 cutscene3_text = (
     "Excellent work! You have conquered the platformer challenge and defeated the mighty boss! "
-    "Now prepare yourself for the final test: an epic adventure through mysterious lands. "
-    "Your skills will be tested in ways you've never experienced before!"
+    "But before you venture into the adventure realm, there's one more test of your skills. "
+    "A musical challenge awaits - can you hit the right notes?"
 )
 displayed_text3 = ""
 text_index3 = 0
 text_timer3 = 0
 cursor_timer3 = 0
+
+# ----- Cutscene 3.5 (after Guitar Hero) -----
+cutscene3_5_text = (
+    "Incredible! You've proven yourself a true musical virtuoso! Your rhythm "
+    "and timing are impeccable. Now you're ready for the ultimate adventure. "
+    "Prepare yourself for exploration, puzzles, and danger in the adventure realm!"
+)
+displayed_text3_5 = ""
+text_index3_5 = 0
+text_timer3_5 = 0
+cursor_timer3_5 = 0
 
 # ----- Cutscene 4 (after adventure game) -----
 cutscene4_text = (
@@ -136,6 +148,12 @@ platformer_initialized = False
 # ----- Doom game variables -----
 doom_game_running = False
 doom_game_launched = False
+
+# ----- Guitar Hero game variables -----
+guitar_hero_game_running = False
+guitar_hero_game_launched = False
+guitar_hero_completed = False
+guitar_hero_game = None
 
 player_group = pygame.sprite.Group()
 platforms = pygame.sprite.Group()
@@ -464,6 +482,10 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
+            # Handle Guitar Hero game events
+            if game_state == "guitar_hero" and guitar_hero_game is not None:
+                guitar_hero_game.handle_event(event)
+            
             # Developer skip
             if event.unicode == "*":
                 # Special handling for doom game skip
@@ -473,6 +495,11 @@ while running:
                     with open(skip_file, "w") as f:
                         f.write("skip")
                     print("Skip signal sent to doom game")
+                elif game_state == "guitar_hero":
+                    # Skip the Guitar Hero game
+                    if guitar_hero_game is not None:
+                        guitar_hero_game.skip()
+                    print("Guitar Hero game skipped")
                 else:
                     # Normal skip for other states
                     game_state = skip_to_next_state(game_state)
@@ -485,6 +512,9 @@ while running:
                     elif game_state == "cutscene3":
                         displayed_text3 = ""
                         text_index3 = 0
+                    elif game_state == "cutscene3_5":
+                        displayed_text3_5 = ""
+                        text_index3_5 = 0
                     elif game_state == "cutscene4":
                         displayed_text4 = ""
                         text_index4 = 0
@@ -510,6 +540,12 @@ while running:
                 elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text):
                     game_state = "platformer"
                 elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text):
+                    game_state = "guitar_hero"
+                    guitar_hero_game_running = False
+                    guitar_hero_game_launched = False
+                elif game_state == "guitar_hero" and guitar_hero_completed:
+                    game_state = "cutscene3_5"
+                elif game_state == "cutscene3_5" and text_index3_5 >= len(cutscene3_5_text):
                     game_state = "adventure"
                     adventure_completed = False
                 elif game_state == "adventure" and adventure_completed:
@@ -728,6 +764,56 @@ while running:
         stage_text = small_font.render(f"Stage: {current_stage + 1}/{max_stages}", True, NEON_GREEN)
         screen.blit(stage_text, (10, 10))
 
+    # ----- GUITAR HERO GAME -----
+    elif game_state == "guitar_hero":
+        if not guitar_hero_game_launched:
+            # Initialize the Guitar Hero game only once
+            guitar_hero_game_launched = True
+            guitar_hero_game_running = True
+            guitar_hero_game = GuitarHeroGame(screen)
+        
+        if guitar_hero_game is not None:
+            # Update the game
+            result = guitar_hero_game.update()
+            
+            if result == "skipped":
+                # Skip directly to next cutscene
+                game_state = "cutscene3_5"
+                displayed_text3_5 = ""
+                text_index3_5 = 0
+                guitar_hero_game_running = False
+                guitar_hero_game = None
+                # Continue to next frame to avoid staying in guitar_hero state
+                continue
+            elif result == "completed":
+                # Guitar Hero completed normally (target score reached)
+                guitar_hero_completed = True
+                guitar_hero_game_running = False
+                guitar_hero_game = None
+                screen.fill(BLACK)
+                message_surface = font.render("GUITAR HERO COMPLETED!", True, NEON_GREEN)
+                screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+                prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+                screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+            else:
+                # Game is still playing, draw it
+                guitar_hero_game.draw()
+        else:
+            # Guitar Hero game already completed, just show the completion screen or wait for input
+            if guitar_hero_completed:
+                screen.fill(BLACK)
+                message_surface = font.render("GUITAR HERO COMPLETED!", True, NEON_GREEN)
+                screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+                prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+                screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+            else:
+                # Show loading or waiting screen
+                screen.fill(BLACK)
+                message_surface = font.render("GUITAR HERO", True, NEON_GREEN)
+                screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+                prompt_surface = small_font.render("Press * to skip", True, NEON_GREEN)
+                screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
     # ----- ADVENTURE GAME -----
     elif game_state == "adventure":
         # Run the adventure game
@@ -771,6 +857,36 @@ while running:
             cursor_timer3 += 1
             if cursor_timer3 % 30 < 15:
                 cursor_x, cursor_y = get_last_line_position(displayed_text3, font, text_max_width, 20, text_y_start)
+                cursor_surf = font.render("|", True, NEON_GREEN)
+                screen.blit(cursor_surf, (cursor_x, cursor_y))
+        else:
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+
+    # ----- CUTSCENE 3.5 (after Guitar Hero) -----
+    elif game_state == "cutscene3_5":
+        puppet_timer += 1
+        if puppet_timer % 10 == 0:
+            current_puppet = puppet_open if current_puppet == puppet_closed else puppet_closed
+        screen.fill(BLACK)
+        
+        # Draw puppet
+        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 2 - 50))
+        
+        # Typewriter effect for cutscene3_5
+        text_timer3_5 += 1
+        if text_timer3_5 % typing_speed == 0 and text_index3_5 < len(cutscene3_5_text):
+            displayed_text3_5 += cutscene3_5_text[text_index3_5]
+            text_index3_5 += 1
+        
+        # Draw text
+        draw_text_wrap(screen, displayed_text3_5, font, NEON_GREEN, 20, text_y_start, text_max_width)
+        
+        # Draw cursor
+        if text_index3_5 < len(cutscene3_5_text):
+            cursor_timer3_5 += 1
+            if cursor_timer3_5 % 30 < 15:
+                cursor_x, cursor_y = get_last_line_position(displayed_text3_5, font, text_max_width, 20, text_y_start)
                 cursor_surf = font.render("|", True, NEON_GREEN)
                 screen.blit(cursor_surf, (cursor_x, cursor_y))
         else:

@@ -44,7 +44,7 @@ def get_last_line_position(text, font, max_width, x, y):
 # -------------------------
 # Developer skip function
 # -------------------------
-game_flow = ["menu", "cutscene", "snake", "cutscene2", "platformer", "cutscene3", "adventure", "cutscene4", "doom", "cutscene5"]
+game_flow = ["menu", "cutscene", "snake", "cutscene2", "platformer", "cutscene3", "guitar_hero", "cutscene3_5", "adventure", "cutscene4", "doom", "cutscene5"]
 
 def skip_to_next_state(current_state):
     """
