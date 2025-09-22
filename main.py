@@ -191,11 +191,8 @@ def setup_stage(stage_num):
 
     if stage_num == 0:
         # Stage 1 - Stepped platforms with complete floor coverage
-        # Ground floor - complete coverage
-        platforms.add(Platform(0, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(250, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(500, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(700, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        # Ground floor - complete coverage across entire width
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
         
         # Second level platforms - reduced density
         platforms.add(Platform(150, HEIGHT-150, 120, 20, "Asset/wood_platform.png"))
@@ -212,8 +209,9 @@ def setup_stage(stage_num):
         platforms.add(Platform(100, 50, 100, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(500, 50, 100, 20, "Asset/wood_platform.png"))
         
-        hazards.add(Hazard(250, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(450, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        # Spikes positioned on top of ground platform
+        hazards.add(Hazard(250, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(450, HEIGHT-70, 50, 20, "Asset/spike.png"))
         
         # Varied enemy patterns
         enemy1 = PlatEnemy(130, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
@@ -228,11 +226,8 @@ def setup_stage(stage_num):
         
     elif stage_num == 1:
         # Stage 2 - Vertical column layout with complete coverage
-        # Ground floor - complete coverage
-        platforms.add(Platform(0, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(200, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(400, HEIGHT-50, 150, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(600, HEIGHT-50, 200, 50, "Asset/ground_platform.png"))
+        # Ground floor - complete coverage across entire width
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
         
         # Column 1 - Left side - reduced density
         platforms.add(Platform(50, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
@@ -259,9 +254,10 @@ def setup_stage(stage_num):
         platforms.add(Platform(350, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(550, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
         
-        hazards.add(Hazard(175, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(375, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(575, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        # Spikes positioned on top of ground platform
+        hazards.add(Hazard(175, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(375, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(575, HEIGHT-70, 50, 20, "Asset/spike.png"))
         
         # Mixed enemy patterns
         enemy1 = PlatEnemy(75, HEIGHT-180, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
@@ -279,13 +275,8 @@ def setup_stage(stage_num):
         
     elif stage_num == 2:
         # Stage 3 - Zigzag pattern with complete coverage
-        # Ground floor - complete coverage
-        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(150, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(300, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(450, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(600, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(750, HEIGHT-50, 50, 50, "Asset/ground_platform.png"))
+        # Ground floor - complete coverage across entire width
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
         
         # Zigzag pattern - alternating heights - reduced density
         platforms.add(Platform(0, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
@@ -307,10 +298,11 @@ def setup_stage(stage_num):
         platforms.add(Platform(200, 100, 60, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(500, 100, 60, 20, "Asset/wood_platform.png"))
         
-        hazards.add(Hazard(125, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(275, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(425, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(575, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        # Spikes positioned on top of ground platform
+        hazards.add(Hazard(125, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(275, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(425, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(575, HEIGHT-70, 50, 20, "Asset/spike.png"))
         
         # Vertical-focused enemies
         enemy1 = PlatEnemy(40, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=85)
@@ -328,14 +320,8 @@ def setup_stage(stage_num):
         
     elif stage_num == 3:
         # Stage 4 - Layered approach with complete coverage
-        # Ground floor - complete coverage
-        platforms.add(Platform(0, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(125, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(250, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(375, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(500, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(625, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(750, HEIGHT-50, 50, 50, "Asset/ground_platform.png"))
+        # Ground floor - complete coverage across entire width
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
         
         # Layer 1 - Low platforms - reduced density
         platforms.add(Platform(62, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
@@ -367,11 +353,12 @@ def setup_stage(stage_num):
         platforms.add(Platform(437, 50, 100, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(625, 50, 100, 20, "Asset/wood_platform.png"))
         
-        hazards.add(Hazard(112, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(237, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(362, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(487, HEIGHT-30, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(612, HEIGHT-30, 50, 20, "Asset/spike.png"))
+        # Spikes positioned on top of ground platform
+        hazards.add(Hazard(112, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(237, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(362, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(487, HEIGHT-70, 50, 20, "Asset/spike.png"))
+        hazards.add(Hazard(612, HEIGHT-70, 50, 20, "Asset/spike.png"))
         
         # Aggressive enemies with varied patterns
         enemy1 = PlatEnemy(40, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
@@ -392,15 +379,8 @@ def setup_stage(stage_num):
         
     elif stage_num == 4:
         # Stage 5 - Pyramid/stepped approach with complete coverage
-        # Ground floor - complete coverage
-        platforms.add(Platform(0, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(100, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(200, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(300, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(400, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(500, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(600, HEIGHT-50, 80, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(700, HEIGHT-50, 100, 50, "Asset/ground_platform.png"))
+        # Ground floor - complete coverage across entire width
+        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
         
         # Step 1 - Low platforms - reduced density
         platforms.add(Platform(100, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
@@ -434,12 +414,13 @@ def setup_stage(stage_num):
         platforms.add(Platform(450, 50, 80, 20, "Asset/wood_platform.png"))
         platforms.add(Platform(650, 50, 80, 20, "Asset/wood_platform.png"))
         
-        hazards.add(Hazard(90, HEIGHT-30, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(190, HEIGHT-30, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(290, HEIGHT-30, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(390, HEIGHT-30, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(490, HEIGHT-30, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(590, HEIGHT-30, 40, 20, "Asset/spike.png"))
+        # Spikes positioned on top of ground platform
+        hazards.add(Hazard(90, HEIGHT-70, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(190, HEIGHT-70, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(290, HEIGHT-70, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(390, HEIGHT-70, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(490, HEIGHT-70, 40, 20, "Asset/spike.png"))
+        hazards.add(Hazard(590, HEIGHT-70, 40, 20, "Asset/spike.png"))
         
         # Elite enemies with high aggro
         enemy1 = PlatEnemy(80, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=120)
@@ -480,6 +461,13 @@ def load_platformer_music():
     except pygame.error:
         print("Warning: Could not load shah.mp3")
         shah_sound = None
+
+def stop_all_music():
+    """Stop all music and sound effects"""
+    global current_music
+    pygame.mixer.music.stop()
+    pygame.mixer.stop()  # Stop all sound effects too
+    current_music = None
 
 def play_platformer_music(stage_num):
     """Play appropriate music for the current stage"""
@@ -543,9 +531,11 @@ while running:
                     # Skip the Guitar Hero game
                     if guitar_hero_game is not None:
                         guitar_hero_game.skip()
+                    stop_all_music()  # Stop guitar hero music
                     print("Guitar Hero game skipped")
                 else:
                     # Normal skip for other states
+                    stop_all_music()  # Stop any current music
                     game_state = skip_to_next_state(game_state)
                     if game_state == "cutscene":
                         displayed_text = ""
@@ -581,6 +571,7 @@ while running:
                     snake_win = False
                 elif game_state == "snake" and snake is not None and snake.size >= 20 and snake_win:
                     game_state = "cutscene2"
+                    stop_all_music()  # Stop snake game music
                 elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text):
                     game_state = "platformer"
                 elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text):
@@ -589,11 +580,13 @@ while running:
                     guitar_hero_game_launched = False
                 elif game_state == "guitar_hero" and guitar_hero_completed:
                     game_state = "cutscene3_5"
+                    stop_all_music()  # Stop guitar hero music
                 elif game_state == "cutscene3_5" and text_index3_5 >= len(cutscene3_5_text):
                     game_state = "adventure"
                     adventure_completed = False
                 elif game_state == "adventure" and adventure_completed:
                     game_state = "cutscene4"
+                    stop_all_music()  # Stop adventure game music
                 elif game_state == "cutscene4" and text_index4 >= len(cutscene4_text):
                     game_state = "doom"
                     doom_game_running = False
@@ -773,7 +766,9 @@ while running:
         if player.rect.right >= WIDTH - 10 and current_stage < max_stages - 1:
             current_stage += 1
             setup_stage(current_stage)
-            play_platformer_music(current_stage)  # Play music for new stage
+            # Only change music when transitioning to boss stage (stage 5)
+            if current_stage == 5:
+                play_platformer_music(current_stage)  # Switch to boss music
             shah_timer = 0  # Reset shah timer for new stage
             print(f"Advanced to stage {current_stage + 1}")  # Debug print
 
@@ -812,6 +807,7 @@ while running:
                     game_state = "cutscene3"
                     reward_group.empty()
                     platformer_initialized = False
+                    stop_all_music()  # Stop platformer music
                     break
 
         # Stage indicator
@@ -835,6 +831,7 @@ while running:
                 game_state = "cutscene3_5"
                 displayed_text3_5 = ""
                 text_index3_5 = 0
+                stop_all_music()  # Stop guitar hero music
                 guitar_hero_game_running = False
                 guitar_hero_game = None
                 # Continue to next frame to avoid staying in guitar_hero state
@@ -879,6 +876,7 @@ while running:
             game_state = "cutscene4"
             displayed_text4 = ""
             text_index4 = 0
+            stop_all_music()  # Stop adventure game music
         elif adventure_result:
             # Adventure completed normally
             adventure_completed = True
@@ -983,6 +981,7 @@ while running:
                 game_state = "cutscene5"
                 displayed_text5 = ""
                 text_index5 = 0
+                stop_all_music()  # Stop doom game music
                 doom_game_running = False
                 # Continue to next frame to avoid staying in doom state
                 continue
@@ -991,6 +990,7 @@ while running:
                 game_state = "cutscene5"
                 displayed_text5 = ""
                 text_index5 = 0
+                stop_all_music()  # Stop doom game music
                 doom_game_running = False
                 # Continue to next frame to avoid staying in doom state
                 continue
