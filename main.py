@@ -8,6 +8,9 @@ from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
 from doom_wrapper import run_doom_game
 from guitar_hero_integrated import GuitarHeroGame
 
+# Initialize pygame mixer for music
+pygame.mixer.init()
+
 # Adventure game integration
 def run_adventure_game():
     """Wrapper function to run the adventure game and return completion status"""
@@ -144,6 +147,12 @@ snake_flash_timer = 0
 
 # ----- Platformer variables -----
 platformer_initialized = False
+
+# ----- Platformer Music Variables -----
+current_music = None
+shah_sound = None
+shah_timer = 0
+shah_interval = 8 * FPS  # 8 seconds in frames
 
 # ----- Doom game variables -----
 doom_game_running = False
@@ -463,16 +472,51 @@ def setup_stage(stage_num):
         player.vel_y = 0
         player.on_ground = False
 
+def load_platformer_music():
+    """Load platformer music files"""
+    global shah_sound
+    try:
+        shah_sound = pygame.mixer.Sound("Asset/shah.mp3")
+    except pygame.error:
+        print("Warning: Could not load shah.mp3")
+        shah_sound = None
+
+def play_platformer_music(stage_num):
+    """Play appropriate music for the current stage"""
+    global current_music
+    
+    # Stop current music
+    if current_music:
+        pygame.mixer.music.stop()
+        current_music = None
+    
+    try:
+        if stage_num < 5:  # Stages 0-4 (before boss)
+            pygame.mixer.music.load("Asset/ambient.mp3")
+            pygame.mixer.music.play(-1)  # Loop indefinitely
+            current_music = "ambient"
+        elif stage_num == 5:  # Boss stage
+            pygame.mixer.music.load("Asset/boss_music.mp3")
+            pygame.mixer.music.play(-1)  # Loop indefinitely
+            current_music = "boss"
+    except pygame.error:
+        print(f"Warning: Could not load music for stage {stage_num}")
+
 def init_platformer():
-    global player_group, player, platformer_initialized, current_stage
+    global player_group, player, platformer_initialized, current_stage, shah_timer
     player_group.empty()
     player = PlatPlayer(50, HEIGHT-100)
     player_group.add(player)
     current_stage = 0
     setup_stage(current_stage)
     platformer_initialized = True
+    shah_timer = 0  # Reset shah timer
+    play_platformer_music(current_stage)  # Start music for stage 0
 
 # ----- Main loop -----
+# Load platformer music at startup
+load_platformer_music()
+
 running = True
 while running:
     clock.tick(FPS)
@@ -696,6 +740,14 @@ while running:
         for boss in boss_group:
             boss.update(player_group, enemies)
             boss.minions.update(player)
+        
+        # Shah sound effect during boss stage (every 8 seconds)
+        if current_stage == max_stages - 1:  # Boss stage
+            shah_timer += 1
+            if shah_timer >= shah_interval:
+                if shah_sound:
+                    shah_sound.play()
+                shah_timer = 0
 
         # Attack collisions
         for attack in player.attack_group:
@@ -721,6 +773,8 @@ while running:
         if player.rect.right >= WIDTH - 10 and current_stage < max_stages - 1:
             current_stage += 1
             setup_stage(current_stage)
+            play_platformer_music(current_stage)  # Play music for new stage
+            shah_timer = 0  # Reset shah timer for new stage
             print(f"Advanced to stage {current_stage + 1}")  # Debug print
 
         # Draw everything

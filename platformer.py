@@ -388,7 +388,7 @@ class Boss(pygame.sprite.Sprite):
         for i in range(minion_count):
             spawn_x = self.rect.x + (i - minion_count//2) * 60
             spawn_y = self.rect.bottom
-            minion = PlatEnemy(spawn_x, spawn_y, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
+            minion = PlatEnemy(spawn_x, spawn_y, "Asset/boss_minion.png", patrol_range=100, aggro_range=90)
             minion.patrol_pattern = patterns[i % len(patterns)]
             self.minions.add(minion)
             enemies_group.add(minion)
