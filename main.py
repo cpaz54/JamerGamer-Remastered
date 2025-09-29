@@ -4,7 +4,11 @@ import os
 from settings import *
 from helpers import draw_text_wrap, get_last_line_position, skip_to_next_state
 from snake_game import Snake, Apple
-from platformer import PlatPlayer, Platform, Hazard, PlatEnemy, Boss, RewardItem
+# Import platform_final components
+import sys
+import os
+platform_final_path = os.path.join(os.getcwd(), "platform_final")
+sys.path.insert(0, platform_final_path)
 from doom_wrapper import run_doom_game
 from guitar_hero_integrated import GuitarHeroGame
 
@@ -39,6 +43,34 @@ def run_adventure_game():
         if adventure_dir in sys.path:
             sys.path.remove(adventure_dir)
 
+# Platform_final game integration
+def run_platform_final_game():
+    """Wrapper function to run the platform_final game and return completion status"""
+    # Change to platform_final directory
+    original_dir = os.getcwd()
+    platform_final_dir = os.path.join(original_dir, "platform_final")
+    
+    try:
+        os.chdir(platform_final_dir)
+        
+        # Import platform_final wrapper module
+        sys.path.insert(0, platform_final_dir)
+        import platform_final_wrapper
+        
+        # Run the platform_final game
+        platform_final_completed = platform_final_wrapper.run_platform_final_game(screen, WIDTH, HEIGHT)
+        
+        return platform_final_completed
+        
+    except Exception as e:
+        print(f"Error running platform_final game: {e}")
+        return False
+    finally:
+        # Restore original directory and path
+        os.chdir(original_dir)
+        if platform_final_dir in sys.path:
+            sys.path.remove(platform_final_dir)
+
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Multi-Game Experience")
@@ -52,8 +84,8 @@ game_state = "menu"
 
 # ----- Cutscene 1 -----
 cutscene_text = (
-    "Welcome to the game. Prepare yourself for a journey through four mini-games. "
-    "Each game will challenge you in a unique way. Good luck and have fun!"
+    "Jameson. Let's play a game. A test of your skills, a test of your luck, a test of your patience. "
+    "Let's start with something simple..."
 )
 displayed_text = ""
 text_index = 0
@@ -63,9 +95,9 @@ cursor_timer = 0
 
 # ----- Cutscene 2 -----
 cutscene2_text = (
-    "Great job finishing the Snake challenge! Now get ready for the next test: "
-    "a classic platformer where timing and agility will be key. Stay sharp, "
-    "and watch out for tricky jumps!"
+    "Very good. You pick up fast. Now, let's try something a little more challenging..."
+    "Use WASD and the space bar to move. Press J to attack. "
+    "These will be your only instructions."
 )
 displayed_text2 = ""
 text_index2 = 0
@@ -74,9 +106,9 @@ cursor_timer2 = 0
 
 # ----- Cutscene 3 (after platformer) -----
 cutscene3_text = (
-    "Excellent work! You have conquered the platformer challenge and defeated the mighty boss! "
-    "But before you venture into the adventure realm, there's one more test of your skills. "
-    "A musical challenge awaits - can you hit the right notes?"
+    "It seems you've bested us all in battle. But some challenges still await. "
+    "This one is a bit more... musical."
+    "Press Z X C V B to select notes, press SPACE to play them."
 )
 displayed_text3 = ""
 text_index3 = 0
@@ -85,9 +117,9 @@ cursor_timer3 = 0
 
 # ----- Cutscene 3.5 (after Guitar Hero) -----
 cutscene3_5_text = (
-    "Incredible! You've proven yourself a true musical virtuoso! Your rhythm "
-    "and timing are impeccable. Now you're ready for the ultimate adventure. "
-    "Prepare yourself for exploration, puzzles, and danger in the adventure realm!"
+    "Your rhythm, your sense of showmanship...remarkable. "
+    "Now for something more old school... "
+    "Use the arrow keys to move and E to interact."
 )
 displayed_text3_5 = ""
 text_index3_5 = 0
@@ -96,9 +128,9 @@ cursor_timer3_5 = 0
 
 # ----- Cutscene 4 (after adventure game) -----
 cutscene4_text = (
-    "Incredible! You have completed the ultimate adventure and defeated the ghostly boss! "
-    "But your journey is not yet over. Prepare yourself for the final challenge: "
-    "a battle against waves of demonic enemies in a classic first-person shooter!"
+    "Well, well, well. You've made it this far. "
+    "It seems nothing can stop you now. "
+    "I hope you have a mouse nearby..."
 )
 displayed_text4 = ""
 text_index4 = 0
@@ -107,9 +139,9 @@ cursor_timer4 = 0
 
 # ----- Cutscene 5 (after doom game) -----
 cutscene5_text = (
-    "VICTORY! You have conquered all the demonic waves and proven yourself a true warrior! "
-    "Your journey through all the games is now complete. You have mastered every challenge: "
-    "Snake, Platformer, Adventure, and Doom. You are a legendary gaming champion!"
+    "Very good, Jameson, very good! "
+    "It seems you've mastered all our tests...for now. "
+    "Be a good boy and go out back behind the house...the door is unlocked."
 )
 displayed_text5 = ""
 text_index5 = 0
@@ -145,14 +177,8 @@ snake_speed = 10
 snake_win = False
 snake_flash_timer = 0
 
-# ----- Platformer variables -----
-platformer_initialized = False
-
-# ----- Platformer Music Variables -----
-current_music = None
-shah_sound = None
-shah_timer = 0
-shah_interval = 8 * FPS  # 8 seconds in frames
+# ----- Platform_final variables -----
+platform_final_completed = False
 
 # ----- Doom game variables -----
 doom_game_running = False
@@ -164,346 +190,19 @@ guitar_hero_game_launched = False
 guitar_hero_completed = False
 guitar_hero_game = None
 
-player_group = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
-hazards = pygame.sprite.Group()
-enemies = pygame.sprite.Group()
-boss_group = pygame.sprite.Group()
-reward_group = pygame.sprite.Group()
-current_stage = 0
-max_stages = 6  # 5 platforming stages + 1 boss stage
-player = None
-
 # ----- Adventure game variables -----
 adventure_completed = False
 
 # ----- Doom game variables -----
 
-# ----- Platformer functions -----
-def setup_stage(stage_num):
-    global player
-    
-    platforms.empty()
-    hazards.empty()
-    enemies.empty()
-    boss_group.empty()
-    reward_group.empty()
-
-    if stage_num == 0:
-        # Stage 1 - Stepped platforms with complete floor coverage
-        # Ground floor - complete coverage across entire width
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        
-        # Second level platforms - reduced density
-        platforms.add(Platform(150, HEIGHT-150, 120, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, HEIGHT-150, 120, 20, "Asset/wood_platform.png"))
-        
-        # Third level platforms - reduced density
-        platforms.add(Platform(250, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(550, HEIGHT-250, 100, 20, "Asset/wood_platform.png"))
-        
-        # Fourth level platforms - reduced density
-        platforms.add(Platform(350, HEIGHT-350, 80, 20, "Asset/wood_platform.png"))
-        
-        # Ceiling platforms for verticality - reduced density
-        platforms.add(Platform(100, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(500, 50, 100, 20, "Asset/wood_platform.png"))
-        
-        # Spikes positioned on top of ground platform
-        hazards.add(Hazard(250, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(450, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        
-        # Varied enemy patterns
-        enemy1 = PlatEnemy(130, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
-        enemy1.patrol_pattern = "back_forth"
-        enemies.add(enemy1)
-        enemy2 = PlatEnemy(380, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=70)
-        enemy2.patrol_pattern = "circle"
-        enemies.add(enemy2)
-        enemy3 = PlatEnemy(630, HEIGHT-180, "Asset/enemy1.png", patrol_range=90, aggro_range=85)
-        enemy3.patrol_pattern = "stationary"
-        enemies.add(enemy3)
-        
-    elif stage_num == 1:
-        # Stage 2 - Vertical column layout with complete coverage
-        # Ground floor - complete coverage across entire width
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        
-        # Column 1 - Left side - reduced density
-        platforms.add(Platform(50, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(50, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(50, 150, 50, 20, "Asset/wood_platform.png"))
-        
-        # Column 2 - Center left - reduced density
-        platforms.add(Platform(250, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, HEIGHT-350, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, 50, 50, 20, "Asset/wood_platform.png"))
-        
-        # Column 3 - Center right - reduced density
-        platforms.add(Platform(450, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, HEIGHT-350, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, 150, 50, 20, "Asset/wood_platform.png"))
-        
-        # Column 4 - Right side - reduced density
-        platforms.add(Platform(650, HEIGHT-150, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, HEIGHT-250, 50, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, 50, 50, 20, "Asset/wood_platform.png"))
-        
-        # Connecting platforms - reduced density
-        platforms.add(Platform(150, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(350, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(550, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        
-        # Spikes positioned on top of ground platform
-        hazards.add(Hazard(175, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(375, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(575, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        
-        # Mixed enemy patterns
-        enemy1 = PlatEnemy(75, HEIGHT-180, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
-        enemy1.patrol_pattern = "back_forth"
-        enemies.add(enemy1)
-        enemy2 = PlatEnemy(275, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=80)
-        enemy2.patrol_pattern = "stationary"
-        enemies.add(enemy2)
-        enemy3 = PlatEnemy(475, HEIGHT-180, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
-        enemy3.patrol_pattern = "circle"
-        enemies.add(enemy3)
-        enemy4 = PlatEnemy(675, HEIGHT-280, "Asset/enemy1.png", patrol_range=80, aggro_range=85)
-        enemy4.patrol_pattern = "back_forth"
-        enemies.add(enemy4)
-        
-    elif stage_num == 2:
-        # Stage 3 - Zigzag pattern with complete coverage
-        # Ground floor - complete coverage across entire width
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        
-        # Zigzag pattern - alternating heights - reduced density
-        platforms.add(Platform(0, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(240, HEIGHT-250, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(480, HEIGHT-150, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(720, HEIGHT-250, 80, 20, "Asset/wood_platform.png"))
-        
-        # Third level - reduced density
-        platforms.add(Platform(120, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(360, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(600, HEIGHT-350, 60, 20, "Asset/wood_platform.png"))
-        
-        # Ceiling platforms - reduced density
-        platforms.add(Platform(75, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(375, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(675, 50, 100, 20, "Asset/wood_platform.png"))
-        
-        # High platforms for verticality - reduced density
-        platforms.add(Platform(200, 100, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(500, 100, 60, 20, "Asset/wood_platform.png"))
-        
-        # Spikes positioned on top of ground platform
-        hazards.add(Hazard(125, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(275, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(425, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(575, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        
-        # Vertical-focused enemies
-        enemy1 = PlatEnemy(40, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=85)
-        enemy1.patrol_pattern = "back_forth"
-        enemies.add(enemy1)
-        enemy2 = PlatEnemy(160, HEIGHT-280, "Asset/enemy1.png", patrol_range=100, aggro_range=95)
-        enemy2.patrol_pattern = "circle"
-        enemies.add(enemy2)
-        enemy3 = PlatEnemy(280, HEIGHT-180, "Asset/enemy1.png", patrol_range=100, aggro_range=75)
-        enemy3.patrol_pattern = "stationary"
-        enemies.add(enemy3)
-        enemy4 = PlatEnemy(400, HEIGHT-280, "Asset/enemy1.png", patrol_range=100, aggro_range=90)
-        enemy4.patrol_pattern = "back_forth"
-        enemies.add(enemy4)
-        
-    elif stage_num == 3:
-        # Stage 4 - Layered approach with complete coverage
-        # Ground floor - complete coverage across entire width
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        
-        # Layer 1 - Low platforms - reduced density
-        platforms.add(Platform(62, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(437, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(625, HEIGHT-120, 80, 20, "Asset/wood_platform.png"))
-        
-        # Layer 2 - Mid platforms - reduced density
-        platforms.add(Platform(112, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(300, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(487, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(675, HEIGHT-200, 60, 20, "Asset/wood_platform.png"))
-        
-        # Layer 3 - High platforms - reduced density
-        platforms.add(Platform(62, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(437, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(625, HEIGHT-280, 40, 20, "Asset/wood_platform.png"))
-        
-        # Layer 4 - Very high platforms - reduced density
-        platforms.add(Platform(112, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(300, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(487, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(675, HEIGHT-360, 30, 20, "Asset/wood_platform.png"))
-        
-        # Ceiling platforms - reduced density
-        platforms.add(Platform(62, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(437, 50, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(625, 50, 100, 20, "Asset/wood_platform.png"))
-        
-        # Spikes positioned on top of ground platform
-        hazards.add(Hazard(112, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(237, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(362, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(487, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        hazards.add(Hazard(612, HEIGHT-70, 50, 20, "Asset/spike.png"))
-        
-        # Aggressive enemies with varied patterns
-        enemy1 = PlatEnemy(40, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
-        enemy1.patrol_pattern = "back_forth"
-        enemies.add(enemy1)
-        enemy2 = PlatEnemy(165, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
-        enemy2.patrol_pattern = "circle"
-        enemies.add(enemy2)
-        enemy3 = PlatEnemy(290, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=85)
-        enemy3.patrol_pattern = "stationary"
-        enemies.add(enemy3)
-        enemy4 = PlatEnemy(415, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=95)
-        enemy4.patrol_pattern = "back_forth"
-        enemies.add(enemy4)
-        enemy5 = PlatEnemy(540, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=90)
-        enemy5.patrol_pattern = "circle"
-        enemies.add(enemy5)
-        
-    elif stage_num == 4:
-        # Stage 5 - Pyramid/stepped approach with complete coverage
-        # Ground floor - complete coverage across entire width
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        
-        # Step 1 - Low platforms - reduced density
-        platforms.add(Platform(100, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(300, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(500, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(700, HEIGHT-120, 60, 20, "Asset/wood_platform.png"))
-        
-        # Step 2 - Mid platforms - reduced density
-        platforms.add(Platform(150, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(350, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(550, HEIGHT-200, 40, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(750, HEIGHT-200, 50, 20, "Asset/wood_platform.png"))
-        
-        # Step 3 - High platforms - reduced density
-        platforms.add(Platform(200, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(400, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(600, HEIGHT-280, 30, 20, "Asset/wood_platform.png"))
-        
-        # Step 4 - Very high platforms - reduced density
-        platforms.add(Platform(250, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, HEIGHT-360, 20, 20, "Asset/wood_platform.png"))
-        
-        # Step 5 - Peak platforms - reduced density
-        platforms.add(Platform(300, HEIGHT-440, 15, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(500, HEIGHT-440, 15, 20, "Asset/wood_platform.png"))
-        
-        # Ceiling platforms - reduced density
-        platforms.add(Platform(50, 50, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(250, 50, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(450, 50, 80, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(650, 50, 80, 20, "Asset/wood_platform.png"))
-        
-        # Spikes positioned on top of ground platform
-        hazards.add(Hazard(90, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(190, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(290, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(390, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(490, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        hazards.add(Hazard(590, HEIGHT-70, 40, 20, "Asset/spike.png"))
-        
-        # Elite enemies with high aggro
-        enemy1 = PlatEnemy(80, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=120)
-        enemy1.patrol_pattern = "back_forth"
-        enemies.add(enemy1)
-        enemy2 = PlatEnemy(180, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=110)
-        enemy2.patrol_pattern = "circle"
-        enemies.add(enemy2)
-        enemy3 = PlatEnemy(280, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=100)
-        enemy3.patrol_pattern = "stationary"
-        enemies.add(enemy3)
-        enemy4 = PlatEnemy(380, HEIGHT-230, "Asset/enemy1.png", patrol_range=80, aggro_range=115)
-        enemy4.patrol_pattern = "back_forth"
-        enemies.add(enemy4)
-        enemy5 = PlatEnemy(480, HEIGHT-150, "Asset/enemy1.png", patrol_range=80, aggro_range=105)
-        enemy5.patrol_pattern = "circle"
-        enemies.add(enemy5)
-        
-    elif stage_num == 5:
-        # Stage 6 - Boss stage
-        platforms.add(Platform(0, HEIGHT-50, WIDTH, 50, "Asset/ground_platform.png"))
-        platforms.add(Platform(100, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        platforms.add(Platform(600, HEIGHT-200, 100, 20, "Asset/wood_platform.png"))
-        boss = Boss(WIDTH//2 - 75, HEIGHT//2 - 75)
-        boss_group.add(boss)
-
-    # Reset player position for each stage
-    if player:
-        player.rect.topleft = (50, HEIGHT-100)
-        player.vel_y = 0
-        player.on_ground = False
-
-def load_platformer_music():
-    """Load platformer music files"""
-    global shah_sound
-    try:
-        shah_sound = pygame.mixer.Sound("Asset/shah.mp3")
-    except pygame.error:
-        print("Warning: Could not load shah.mp3")
-        shah_sound = None
+# ----- Platform_final functions -----
 
 def stop_all_music():
     """Stop all music and sound effects"""
-    global current_music
     pygame.mixer.music.stop()
     pygame.mixer.stop()  # Stop all sound effects too
-    current_music = None
-
-def play_platformer_music(stage_num):
-    """Play appropriate music for the current stage"""
-    global current_music
-    
-    # Stop current music
-    if current_music:
-        pygame.mixer.music.stop()
-        current_music = None
-    
-    try:
-        if stage_num < 5:  # Stages 0-4 (before boss)
-            pygame.mixer.music.load("Asset/ambient.mp3")
-            pygame.mixer.music.play(-1)  # Loop indefinitely
-            current_music = "ambient"
-        elif stage_num == 5:  # Boss stage
-            pygame.mixer.music.load("Asset/boss_music.mp3")
-            pygame.mixer.music.play(-1)  # Loop indefinitely
-            current_music = "boss"
-    except pygame.error:
-        print(f"Warning: Could not load music for stage {stage_num}")
-
-def init_platformer():
-    global player_group, player, platformer_initialized, current_stage, shah_timer
-    player_group.empty()
-    player = PlatPlayer(50, HEIGHT-100)
-    player_group.add(player)
-    current_stage = 0
-    setup_stage(current_stage)
-    platformer_initialized = True
-    shah_timer = 0  # Reset shah timer
-    play_platformer_music(current_stage)  # Start music for stage 0
 
 # ----- Main loop -----
-# Load platformer music at startup
-load_platformer_music()
 
 running = True
 while running:
@@ -527,6 +226,17 @@ while running:
                     with open(skip_file, "w") as f:
                         f.write("skip")
                     print("Skip signal sent to doom game")
+                elif game_state == "platform_final":
+                    # Skip the platform_final game
+                    game_state = "cutscene3"
+                    platform_final_completed = True
+                    stop_all_music()  # Stop platform_final music
+                    
+                    # Restore main game window dimensions for cutscenes
+                    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+                    pygame.display.set_caption("we are watching")
+                    
+                    print("Platform_final game skipped")
                 elif game_state == "guitar_hero":
                     # Skip the Guitar Hero game
                     if guitar_hero_game is not None:
@@ -573,7 +283,7 @@ while running:
                     game_state = "cutscene2"
                     stop_all_music()  # Stop snake game music
                 elif game_state == "cutscene2" and text_index2 >= len(cutscene2_text):
-                    game_state = "platformer"
+                    game_state = "platform_final"
                 elif game_state == "cutscene3" and text_index3 >= len(cutscene3_text):
                     game_state = "guitar_hero"
                     guitar_hero_game_running = False
@@ -695,124 +405,29 @@ while running:
             prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
             screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
 
-    # ----- PLATFORMER -----
-    elif game_state == "platformer":
-        if not platformer_initialized:
-            init_platformer()
-
-        # Clear screen first to prevent trails
-        screen.fill(BLACK)
+    # ----- PLATFORM_FINAL GAME -----
+    elif game_state == "platform_final":
+        # Run the platform_final game
+        platform_final_result = run_platform_final_game()
         
-        # Background
-        try:
-            bg = pygame.image.load("Asset/platformer_bg.png").convert()
-            bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))  # Scale to screen size
-            screen.blit(bg, (0, 0))
-        except pygame.error:
-            screen.fill((50, 50, 100))  # Fallback background color
-
-        # Player update and collision handling
-        player.update(platforms, enemies, hazards)
-        
-        # Check if player died from hazards
-        if pygame.sprite.spritecollide(player, hazards, False):
-            # Reset player to start of current stage
-            player.rect.topleft = (50, HEIGHT-100)
-            player.vel_y = 0
-
-        # Check if player died from enemies
-        if pygame.sprite.spritecollide(player, enemies, False):
-            # Reset player to start of current stage
-            player.rect.topleft = (50, HEIGHT-100)
-            player.vel_y = 0
-
-        # Enemies update (pass player for aggro detection)
-        enemies.update(player)
-        
-        # Boss update
-        for boss in boss_group:
-            boss.update(player_group, enemies)
-            boss.minions.update(player)
-        
-        # Shah sound effect during boss stage (every 8 seconds)
-        if current_stage == max_stages - 1:  # Boss stage
-            shah_timer += 1
-            if shah_timer >= shah_interval:
-                if shah_sound:
-                    shah_sound.play()
-                shah_timer = 0
-
-        # Attack collisions
-        for attack in player.attack_group:
-            # Hit regular enemies
-            hit_enemies = pygame.sprite.spritecollide(attack, enemies, True)
-            if hit_enemies:
-                attack.kill()
+        # Handle different return values
+        if platform_final_result:
+            # Platform_final completed normally - transition immediately to next cutscene
+            game_state = "cutscene3"
+            stop_all_music()  # Stop platform_final music
             
-            # Hit boss minions
-            for boss in boss_group:
-                hit_minions = pygame.sprite.spritecollide(attack, boss.minions, True)
-                if hit_minions:
-                    attack.kill()
-                
-                # Hit boss
-                if attack.rect.colliderect(boss.rect):
-                    boss.health -= 1
-                    attack.kill()
-                    if boss.health <= 0:
-                        boss.kill()
-
-        # Stage progression - player reaches right edge
-        if player.rect.right >= WIDTH - 10 and current_stage < max_stages - 1:
-            current_stage += 1
-            setup_stage(current_stage)
-            # Only change music when transitioning to boss stage (stage 5)
-            if current_stage == 5:
-                play_platformer_music(current_stage)  # Switch to boss music
-            shah_timer = 0  # Reset shah timer for new stage
-            print(f"Advanced to stage {current_stage + 1}")  # Debug print
-
-        # Draw everything
-        platforms.draw(screen)
-        hazards.draw(screen)
-        enemies.draw(screen)
-        
-        # Draw boss and minions
-        for boss in boss_group:
-            screen.blit(boss.image, boss.rect)
-            boss.minions.draw(screen)
+            # Restore main game window dimensions for cutscenes
+            screen = pygame.display.set_mode((WIDTH, HEIGHT))
+            pygame.display.set_caption("Multi-Game Experience")
             
-        reward_group.draw(screen)
-        player_group.draw(screen)
-        player.attack_group.draw(screen)
-
-        # Boss health bar
-        if current_stage == max_stages - 1:  # only in boss stage
-            for boss in boss_group:
-                if boss.health > 0:
-                    bar_width = max(0, boss.health * 5)
-                    pygame.draw.rect(screen, (255, 0, 0), (boss.rect.x, boss.rect.y - 15, bar_width, 10))
-                    pygame.draw.rect(screen, (255, 255, 255), (boss.rect.x, boss.rect.y - 15, 150, 10), 2)
-
-        # Reward on boss defeat
-        if len(boss_group.sprites()) == 0 and current_stage == max_stages - 1 and len(reward_group.sprites()) == 0:
-            reward_item = RewardItem(WIDTH - 100, HEIGHT - 100, "Asset/reward_item.png")
-            reward_group.add(reward_item)
-
-        # Reward pickup - check if player attacks it
-        for reward in reward_group:
-            # Check if any attack hits the reward
-            for attack in player.attack_group:
-                if attack.rect.colliderect(reward.rect):
-                    game_state = "cutscene3"
-                    reward_group.empty()
-                    platformer_initialized = False
-                    stop_all_music()  # Stop platformer music
-                    break
-
-        # Stage indicator
-        stage_text = small_font.render(f"Stage: {current_stage + 1}/{max_stages}", True, NEON_GREEN)
-        screen.blit(stage_text, (10, 10))
+            print("Platform_final completed! Transitioning to cutscene3")
+        else:
+            # Platform_final ended unexpectedly
+            screen.fill(BLACK)
+            message_surface = font.render("Platform_final game ended unexpectedly", True, NEON_GREEN)
+            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
+            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
+            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
 
     # ----- GUITAR HERO GAME -----
     elif game_state == "guitar_hero":
@@ -878,13 +493,11 @@ while running:
             text_index4 = 0
             stop_all_music()  # Stop adventure game music
         elif adventure_result:
-            # Adventure completed normally
-            adventure_completed = True
-            screen.fill(BLACK)
-            message_surface = font.render("ADVENTURE COMPLETED!", True, NEON_GREEN)
-            screen.blit(message_surface, message_surface.get_rect(center=(WIDTH // 2, HEIGHT // 2)))
-            prompt_surface = small_font.render("Press Enter to continue...", True, NEON_GREEN)
-            screen.blit(prompt_surface, prompt_surface.get_rect(center=(WIDTH // 2, HEIGHT - 20)))
+            # Adventure completed normally - transition to next cutscene
+            game_state = "cutscene4"
+            displayed_text4 = ""
+            text_index4 = 0
+            stop_all_music()  # Stop adventure game music
         else:
             # Adventure ended unexpectedly
             screen.fill(BLACK)
@@ -923,7 +536,7 @@ while running:
         screen.fill(BLACK)
         
         # Draw puppet
-        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 2 - 50))
+        screen.blit(current_puppet, (WIDTH // 2 - 50, HEIGHT // 4 - 50))
         
         # Typewriter effect for cutscene3_5
         text_timer3_5 += 1

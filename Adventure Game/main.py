@@ -49,6 +49,10 @@ def main(screen):
                     player.jumping = True
                 if event.key == pygame.K_c: #shows this image on the screen
                     player.image = player_imgs[13]
+                
+                # Check for skip key (*) to return to main game
+                if event.unicode == "*":
+                    return "skipped"  # Skip the adventure game
 
                 # shoots arrow if key pressed, count charged up, and if the player has the bow
                 if event.key == pygame.K_q and player.item_timer_count == player.item_timer_length and player.bow_get:
@@ -131,6 +135,11 @@ def main(screen):
         screen.blit(my_font.render('KEYS: ' + str(player.key_amount), 3, BLACK), (0, 90))
         pygame.draw.rect(screen, (0, 0, 0), (WIDTH - TILESIZE * 3, 0, TILESIZE*2 + 25, TILESIZE-5))
         pygame.draw.rect(screen, (100, 255, 0), (WIDTH-TILESIZE*3+5,5,int(TILESIZE*3*player.item_timer_count/12-72),TILESIZE-15))
+        
+        # Check for game completion - when both NPCs have been talked to
+        if player.npc1_talked and player.npc2_talked:
+            print("Adventure game completed! Both NPCs talked to.")
+            return True  # Return True to indicate completion
         
         pygame.display.update()
 

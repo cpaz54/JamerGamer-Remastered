@@ -53,11 +53,27 @@ def run_doom_game(screen):
         skip_thread.daemon = True
         skip_thread.start()
         
-        # Wait for the process to complete or skip signal
+        # Wait for the process to complete or skip signal with timeout
+        timeout_counter = 0
+        max_timeout = 300  # 15 seconds timeout (300 * 0.05)
+        
         while process.poll() is None:  # While process is running
             if skip_detected.is_set():
                 print("Doom game was skipped")
                 return "skipped"
+            
+            timeout_counter += 1
+            if timeout_counter > max_timeout:
+                print("Doom game timeout - force terminating")
+                try:
+                    process.terminate()
+                    time.sleep(0.5)
+                    if process.poll() is None:
+                        process.kill()
+                except:
+                    pass
+                return False
+                
             time.sleep(0.05)  # Check every 50ms for faster response
         
         # Process has finished, get the output
@@ -72,12 +88,23 @@ def run_doom_game(screen):
             print("Doom game was skipped")
             return "skipped"
         
-        # Check the return code
+        # Check the return code and output
+        print(f"Process return code: {process.returncode}")
+        print(f"STDOUT: {stdout.decode() if stdout else 'None'}")
+        print(f"STDERR: {stderr.decode() if stderr else 'None'}")
+        
         if process.returncode == 0:
             print("Doom game completed successfully")
-            return True
+            # Check if there's any output that indicates victory
+            output_text = stdout.decode() if stdout else ""
+            if "victory" in output_text.lower() or "win" in output_text.lower():
+                return True
+            else:
+                return True  # Still return True for successful completion
         else:
-            print(f"Doom game ended with error: {stderr.decode()}")
+            print(f"Doom game ended with error code {process.returncode}")
+            if stderr:
+                print(f"Error details: {stderr.decode()}")
             return False
             
     except Exception as e:

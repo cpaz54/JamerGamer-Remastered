@@ -26,7 +26,7 @@ def draw_map(map_grid, tile_img, animation_img, disappearing_img, red_imgs, shru
                 player.stairs_list.append(Stair(col_num * TILESIZE, row_num * TILESIZE, stair_img))
             if tile >= 350:
                 if tile == 350: #chests/signs - 350s
-                    player.tile_list.append(Chest(col_num * TILESIZE, row_num * TILESIZE, sword_imgs[1], [['You got the sword.', 'Press the A key to use.', 'This item can be used to'], ['harm enemies and cut down', 'bushes.']], col_num, row_num))
+                    player.tile_list.append(Chest(col_num * TILESIZE, row_num * TILESIZE, sword_imgs[1], [['You got a sword.', 'Press the A key to use.', 'This item can be used to'], ['harm enemies and cut down', 'bushes.']], col_num, row_num))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 351:
                     player.tile_list.append(Chest(col_num * TILESIZE, row_num * TILESIZE, bow_img, [['You got the bow and arrow.', 'Press the Q key to use.', 'Arrows are unlimited, but'], ['only a certain amount of', 'arrows can be shot at a', 'time.']], col_num, row_num))
@@ -43,13 +43,13 @@ def draw_map(map_grid, tile_img, animation_img, disappearing_img, red_imgs, shru
                     player.tile_list.append(Chest(col_num * TILESIZE, row_num * TILESIZE, gold_key_img, [['You got a key.', "Use it to open a locked", 'door.']], col_num, row_num))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 355:
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Welcome to the demo of my", "game! It doesn't have a", 'name yet, but I hope you'],["enjoy either way!", "I made it using pygame.", ":)"]], sign_img))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Welcome to a Zelda-like", "game. Maybe you will find", 'it enjoyable.'],["Do not fail, Jameson.", "We are watching.", ":)"]], sign_img))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 356:
                     player.tile_list.append(Chest(col_num * TILESIZE, row_num * TILESIZE, drops_imgs[1], [['You got 10 gems.', "Don't spend it all in one", 'place.']], col_num, row_num))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 357:
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["North: Hasenberg Residence", "West: Dundee Shores"]], sign_img))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["North: Fan Residence", "West: DiPalma Shores"]], sign_img))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
             if tile >= 400: #blitted images - 400s
                 if tile == 400:
@@ -115,7 +115,7 @@ def draw_map(map_grid, tile_img, animation_img, disappearing_img, red_imgs, shru
                 if tile == 801:
                     player.animated_image_list.append(AnimatedImage(col_num * TILESIZE, row_num * TILESIZE, NPC_imgs, 100))
                     player.background_image_list.append(BackgroundImage(col_num * TILESIZE, row_num * TILESIZE, floorboard_img))
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["You talked to my brother?", 'Please clear out our', 'family tomb! Ghosts have'],["been terrorizing that", "place for way too long.", "Take my bow and arrow"], ["with you and be careful!"]], transparent))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["You talked to my brother?", 'Please clear out our', 'sex dungeon! Ghosts have'],["been terrorizing that", "place for way too long.", "Take my bow and arrow"], ["with you and be careful!"]], transparent))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 802:
                     player.animated_image_list.append(AnimatedImage(col_num*TILESIZE,row_num*TILESIZE, waterfall_imgs, 50))
@@ -148,15 +148,15 @@ def draw_map(map_grid, tile_img, animation_img, disappearing_img, red_imgs, shru
                     player.tile_list.append(Wall(col_num*TILESIZE,row_num*TILESIZE,transparent, 'half'))
                 if tile == 812:
                     player.animated_image_list.append(AnimatedImage(col_num * TILESIZE, row_num * TILESIZE, NPC2_imgs, 100))
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Hey Mister! My brother", 'needs your help to clear', 'out an old family tomb.'],["Our house is to the north.", "...now where did I put", "the key..."]], transparent))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Hey Mister! My brother", 'needs your help to clear', 'out an old family sex dungeon.'],["Our house is to the north.", "...now where did I put", "the key..."]], transparent))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 813:
                     player.animated_image_list.append(AnimatedImage(col_num * TILESIZE, row_num * TILESIZE, NPC_imgs, 100))
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Thank you for clearing out", 'our family tomb! Here is', 'some money to reward you.'], ['It may not look like a lot,', 'but it is all my brother', 'and I had saved up.']], transparent))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Thank you for clearing out", 'our family sex dungeon! Here is', 'some money to reward you.'], ['It may not look like a lot,', 'but it is all my brother', 'and I had saved up.']], transparent, 'npc1'))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
                 if tile == 814:
                     player.animated_image_list.append(AnimatedImage(col_num * TILESIZE, row_num * TILESIZE, NPC2_imgs, 100))
-                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Wow thanks man. Now our", 'ancestors can rest in', 'peace.']], transparent))
+                    player.tile_list.append(Sign(col_num * TILESIZE, row_num * TILESIZE, [["Wow thanks man. Now our", 'ancestors can rest in', 'peace.']], transparent, 'npc2'))
                     player.tile_list.append(Wall(col_num * TILESIZE, row_num * TILESIZE, transparent, 'full'))
             if tile >= 900: #walls - 900s
                 if tile == 900:

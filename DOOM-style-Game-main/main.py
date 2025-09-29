@@ -30,6 +30,7 @@ class Game:
         self.delta_time = 1
         self.global_trigger = False
         self.global_event = pg.USEREVENT + 0
+        self.victory_achieved = False  # Flag to track when victory is achieved
         pg.time.set_timer(self.global_event, 40)
         self.new_game()
 
@@ -64,8 +65,7 @@ class Game:
         self.global_trigger = False
         for event in pg.event.get():
             if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
-                pg.quit()
-                sys.exit()
+                return "exited"
             elif event.type == pg.KEYDOWN and event.unicode == "*":
                 # Skip key - return to main game
                 return "skipped"
@@ -78,18 +78,30 @@ class Game:
             result = self.check_events()
             if result == "skipped":
                 return "skipped"
+            elif result == "exited":
+                return "exited"
+            
+            # Check if victory has been achieved
+            if self.victory_achieved:
+                # Properly close pygame and return
+                print("Victory achieved, exiting doom game...")
+                pg.mixer.music.stop()
+                pg.mixer.quit()
+                return "victory"
+            
+            # Alternative victory check - if all enemies are dead
+            if (hasattr(self, 'object_handler') and 
+                hasattr(self.object_handler, 'npc_positions') and 
+                len(self.object_handler.npc_positions) == 0 and
+                hasattr(self.object_handler, 'wave_complete') and 
+                self.object_handler.wave_complete):
+                print("Alternative victory check - all enemies dead, exiting...")
+                pg.mixer.music.stop()
+                pg.mixer.quit()
+                return "victory"
+                
             self.update()
             self.draw()
-            
-            # Check if all waves are completed (victory condition)
-            if (hasattr(self.object_handler, 'wave_complete') and 
-                self.object_handler.wave_complete and 
-                len(self.object_handler.npc_positions) == 0):
-                # Show victory screen briefly
-                self.object_renderer.win()
-                pg.display.flip()
-                pg.time.delay(2000)  # Show victory for 2 seconds
-                return "victory"
 
 
 if __name__ == '__main__':

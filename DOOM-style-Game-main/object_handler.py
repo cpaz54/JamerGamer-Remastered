@@ -215,10 +215,15 @@ class ObjectHandler:
 
     def check_win(self):
         if not len(self.npc_positions):
+            print("Victory condition met - showing win screen")
             self.game.object_renderer.win()
             pg.display.flip()
             pg.time.delay(1500)
-            self.game.new_game()
+            # Set a flag to indicate the game should exit
+            print("Setting victory_achieved flag to True")
+            self.game.victory_achieved = True
+            # Don't restart the game - let it exit to return to main game
+            # self.game.new_game()  # Commented out to allow proper completion
 
     def update(self):
         self.check_center_trigger()

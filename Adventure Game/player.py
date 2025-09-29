@@ -67,6 +67,10 @@ class Player(pygame.sprite.Sprite):
         self.item_timer_length = 15
         self.item_timer_count = self.item_timer_length #gets set to 0 when arrow is used, and goes up every frame until it hits timer length, and then can shoot arrow again
         self.red_switch_on = True #red switch is on by default until player shoots a target to make it blue
+        
+        # NPC interaction tracking for game completion
+        self.npc1_talked = False  # First NPC after skeleton boss (tile 813)
+        self.npc2_talked = False  # Second NPC after skeleton boss (tile 814)
         self.ghost_boss_dead = False
 
         #OTHER SPRITE LISTS (SHOULD BE IN GAME CLASS.. IF I HAD ONE. BUT THERE IS ONLY ONE PLAYER SO THIS WORKS)
