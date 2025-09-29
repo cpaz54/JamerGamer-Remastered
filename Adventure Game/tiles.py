@@ -346,7 +346,7 @@ class Doorway(pygame.sprite.Sprite):
             player.rect.y = self.y_teleport
 
 class Sign(pygame.sprite.Sprite):
-    def __init__(self, x, y, text, image):
+    def __init__(self, x, y, text, image, npc_type=None):
         pygame.sprite.Sprite.__init__(self)
         self.image = image
         self.rect = self.image.get_rect()  # figures out rectangle hitbox based on image
@@ -354,10 +354,17 @@ class Sign(pygame.sprite.Sprite):
         self.rect.y = y
         self.hitbox = (self.rect.x, self.rect.y + TILESIZE, TILESIZE, TILESIZE // 2)  # area where player needs to be to read sign
         self.text = text
+        self.npc_type = npc_type  # 'npc1' or 'npc2' for the completion NPCs
 
     def update(self):
         if collision_from_rects(player.hitbox, self.hitbox) and player.facing_directions[0] and player.e_pressed:
             textbox(self.text)
+            
+            # Track NPC interactions for game completion
+            if self.npc_type == 'npc1':
+                player.npc1_talked = True
+            elif self.npc_type == 'npc2':
+                player.npc2_talked = True
 
 class Chest(pygame.sprite.Sprite):
     def __init__(self, x, y, item, text, col_num, row_num):
