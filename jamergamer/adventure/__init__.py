@@ -220,10 +220,10 @@ class AdventureScene(Scene):
             return
         k = event.key
         if self.state == "title":
-            if k in (pygame.K_RETURN, pygame.K_SPACE):
-                self.state = "play"
-                self.sfx("cool_sound", 0.5)
-                self._room_music()
+            # the title art says PRESS START: any key does it
+            self.state = "play"
+            self.sfx("cool_sound", 0.5)
+            self._room_music()
             return
         if self.text is not None:
             if k in TALK_KEYS or k in SWORD_KEYS:
@@ -716,15 +716,17 @@ class AdventureScene(Scene):
 
     def _draw_title(self, surf):
         if self.title_img is None:
+            # fit the (nearly square) title art to the screen height, centred on black
+            self.title_img = pygame.Surface((W, H))
             try:
-                img = pygame.image.load(asset("adventure", "source", "menu", "title_screen_img.png")).convert()
-                self.title_img = pygame.transform.smoothscale(img, (W, H))
+                img = pygame.image.load(asset("adventure", "source", "menu", "jamerquest_title.png")).convert()
+                iw, ih = img.get_size()
+                scale = min(W / iw, H / ih)
+                img = pygame.transform.smoothscale(img, (round(iw * scale), round(ih * scale)))
+                self.title_img.blit(img, img.get_rect(center=(W // 2, H // 2)))
             except (pygame.error, FileNotFoundError):
-                self.title_img = pygame.Surface((W, H))
                 self.title_img.fill(WHITE)
         surf.blit(self.title_img, (0, 0))
-        if ui.blink(self.t, 1.2):
-            ui.draw_text(surf, "PRESS ENTER", 8, (W // 2, H - 26), (200, 30, 30), "midtop")
 
     def _draw_hud(self, surf):
         a = self.art
