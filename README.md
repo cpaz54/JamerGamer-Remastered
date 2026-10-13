@@ -4,7 +4,7 @@ A test of your skills, a test of your luck, a test of your patience.
 
 ## Play in your browser
 
-**[cpaz54.github.io/JamerGamer](https://cpaz54.github.io/JamerGamer/)**
+**[cpaz54.github.io/JamerGamer-Remastered](https://cpaz54.github.io/JamerGamer-Remastered/)**
 
 Works in Chrome, Edge, Firefox and Safari on a computer with a keyboard. The first load
 downloads about 75 MB, then click the page to start. Your progress saves in the browser.
