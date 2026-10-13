@@ -2,9 +2,17 @@
 
 A test of your skills, a test of your luck, a test of your patience.
 
-## Download
+## Play in your browser
 
-On this page, click the green **Code** button, then **Download ZIP**, and unzip it.
+**[cpaz54.github.io/JamerGamer](https://cpaz54.github.io/JamerGamer/)**
+
+Works in Chrome, Edge, Firefox and Safari on a computer with a keyboard. The first load
+downloads about 75 MB, then click the page to start. Your progress saves in the browser.
+In the shooter chapter, click the game to aim with the mouse, and press Esc to let go of it.
+
+## Download instead
+
+To play without a browser, click the green **Code** button on this page, then **Download ZIP**, and unzip it.
 Then follow the steps for your computer below.
 
 ## Play on Mac

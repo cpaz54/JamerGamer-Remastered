@@ -1,6 +1,7 @@
 """Title screen: continue / new game / chapter select / settings."""
 import math
 import random
+import sys
 
 import pygame
 
@@ -9,6 +10,8 @@ from ..config import BLACK, NEON, NEON_DIM
 from ..scene import Scene
 from ..story import CHAPTERS, INDEX
 from .common import puppet, tint
+
+WEB = sys.platform == "emscripten"   # browser build: no quit / fullscreen options
 
 
 class TitleScene(Scene):
@@ -36,7 +39,7 @@ class TitleScene(Scene):
             items += [("NEW GAME", "new")]
             if s["reached"] > 0:
                 items.append(("CHAPTERS", "chapters"))
-            items += [("SETTINGS", "settings"), ("QUIT", "quit")]
+            items += [("SETTINGS", "settings")] + ([] if WEB else [("QUIT", "quit")])
         elif self.mode == "chapters":
             items = []
             for label, sid in CHAPTERS:
@@ -49,7 +52,7 @@ class TitleScene(Scene):
             items = [
                 (lambda: f"MUSIC  < {int(round(s['music_volume'] * 10))} >", "music"),
                 (lambda: f"SOUND  < {int(round(s['sfx_volume'] * 10))} >", "sfx"),
-                (lambda: f"FULLSCREEN  {'ON' if self.app.fullscreen else 'OFF'}", "full"),
+                *([] if WEB else [(lambda: f"FULLSCREEN  {'ON' if self.app.fullscreen else 'OFF'}", "full")]),
                 ("RESET PROGRESS", "reset"),
                 ("BACK", "back"),
             ]
@@ -139,7 +142,7 @@ class TitleScene(Scene):
         ui.draw_text(surf, sub, 10, (w // 2, 136), NEON_DIM, "midtop")
 
         self.menu.draw(surf, w // 2, 214 if self.mode != "chapters" else 186, self.t)
-        hint = "ARROWS + ENTER    F11 FULLSCREEN    ESC PAUSES IN GAME"
+        hint = "ARROWS + ENTER    ESC PAUSES IN GAME" if WEB else "ARROWS + ENTER    F11 FULLSCREEN    ESC PAUSES IN GAME"
         if self.app.save.data.get("completed"):
             hint = "WE ARE WATCHING. ALWAYS."
         ui.draw_text(surf, hint, 8, (w // 2, h - 22), NEON_DIM, "midtop")

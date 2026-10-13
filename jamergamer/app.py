@@ -1,10 +1,37 @@
 """Window, main loop, scene switching, pause menu and global hotkeys."""
+import asyncio
+import sys
+
 import pygame
 
 from . import ui
 from .audio import Audio
 from .config import WINDOW_SIZE, FPS, STEP, TITLE, BLACK, NEON, NEON_DIM
 from .save import Save
+
+WEB = sys.platform == "emscripten"
+# browser build: fixed-size canvas (the page scales it); fullscreen is the browser's job
+WINDOW_FLAGS = 0 if WEB else pygame.RESIZABLE
+
+# Browser mouse capture. pygame's grab hangs the web build, so a click on the canvas
+# requests the browser's pointer lock instead; SDL then reports relative motion as usual.
+POINTER_LOCK_JS = """
+if (!window.jgLock) {
+    window.jgLock = {want: false, locked: false};
+    const c = document.getElementById("canvas");
+    c.addEventListener("mousedown", () => {
+        if (window.jgLock.want && document.pointerLockElement !== c) c.requestPointerLock();
+    });
+    document.addEventListener("pointerlockchange", () => {
+        window.jgLock.locked = document.pointerLockElement === c;
+    });
+}
+"""
+
+
+def _js(code):
+    import platform          # pygbag's browser bridge
+    return platform.window.eval(code)
 
 
 class App:
@@ -14,8 +41,8 @@ class App:
         pygame.display.set_caption(TITLE)
         self.save = Save()
         self.fullscreen = False
-        self.window = pygame.display.set_mode(WINDOW_SIZE, pygame.RESIZABLE)
-        if self.save["fullscreen"]:
+        self.window = pygame.display.set_mode(WINDOW_SIZE, WINDOW_FLAGS)
+        if self.save["fullscreen"] and not WEB:
             self.toggle_fullscreen()
         self.clock = pygame.time.Clock()
         self.audio = Audio(self.save)
@@ -29,6 +56,9 @@ class App:
         self.pause_menu = None
         self.running = True
         self.t = 0.0
+        self.web_locked = False
+        if WEB:
+            _js(POINTER_LOCK_JS)
 
         from .story import Story
         self.story = Story(self)
@@ -61,14 +91,21 @@ class App:
 
     # --------------------------------------------------------------- window
     def toggle_fullscreen(self):
+        if WEB:
+            return
         self.fullscreen = not self.fullscreen
         if self.fullscreen:
             self.window = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         else:
-            self.window = pygame.display.set_mode(WINDOW_SIZE, pygame.RESIZABLE)
+            self.window = pygame.display.set_mode(WINDOW_SIZE, WINDOW_FLAGS)
         self.save["fullscreen"] = self.fullscreen
 
     def _apply_grab(self):
+        if WEB:
+            want = bool(self.scene and self.scene.grab_mouse and not self.paused)
+            _js(f"window.jgLock.want = {'true' if want else 'false'};"
+                + ("" if want else " if (document.pointerLockElement) document.exitPointerLock();"))
+            return
         grab = bool(self.scene and self.scene.grab_mouse and not self.paused and pygame.display.get_active())
         pygame.event.set_grab(grab)
         # pygame 2: hidden cursor + grab switches SDL into relative mouse mode
@@ -104,8 +141,13 @@ class App:
 
     # --------------------------------------------------------------- loop
     def run(self):
+        asyncio.run(self.run_async())
+
+    async def run_async(self):
+        """Main loop. Async so the browser build (pygbag) gets control back every frame."""
         acc = 0.0
         while self.running:
+            await asyncio.sleep(0)
             frame = self.clock.tick(FPS) / 1000.0
             acc += min(frame, 0.1)
             self.t += frame
@@ -120,9 +162,19 @@ class App:
                     self.scene.update(STEP)
                 self._update_fade(STEP)
             self._draw()
-        pygame.quit()
+        if sys.platform != "emscripten":
+            pygame.quit()
+
+    def _web_pointer(self):
+        """Browser: pause when the pointer lock is lost (Esc releases it in browsers)."""
+        locked = bool(_js("window.jgLock.locked"))
+        if self.web_locked and not locked and self.scene.grab_mouse and not self.paused and self.pending is None:
+            self.pause()
+        self.web_locked = locked
 
     def _events(self):
+        if WEB:
+            self._web_pointer()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
@@ -167,6 +219,9 @@ class App:
         self.scene.draw(self.canvas)
         if self.paused:
             self.pause_menu.draw(self.canvas)
+        if WEB and self.scene.grab_mouse and not self.paused and not self.web_locked and self.pending is None:
+            ui.draw_text(self.canvas, "CLICK TO AIM WITH THE MOUSE", 10,
+                         (self.canvas.get_width() // 2, self.canvas.get_height() - 40), NEON, "midtop", shadow=BLACK)
         if self.fade > 0:
             veil = pygame.Surface(self.canvas.get_size())
             veil.set_alpha(int(255 * self.fade))
@@ -176,7 +231,11 @@ class App:
         if rect.size == self.canvas.get_size():
             self.window.blit(self.canvas, rect)
         else:
-            pygame.transform.scale(self.canvas, rect.size, self.window.subsurface(rect))
+            try:
+                pygame.transform.scale(self.canvas, rect.size, self.window.subsurface(rect))
+            except ValueError:
+                # browser build: the window's pixel format differs from the canvas
+                self.window.blit(pygame.transform.scale(self.canvas, rect.size), rect)
         pygame.display.flip()
 
     def quit(self):
@@ -196,12 +255,12 @@ class PauseMenu:
             items = [("RESUME", "resume")]
             if getattr(self.app.story, "current", None) is not None:
                 items.append(("RESTART CHAPTER", "restart"))
-            items += [("SETTINGS", "settings"), ("QUIT TO TITLE", "title"), ("QUIT GAME", "quit")]
+            items += [("SETTINGS", "settings"), ("QUIT TO TITLE", "title")] + ([] if WEB else [("QUIT GAME", "quit")])
         else:
             items = [
                 (lambda: f"MUSIC  < {int(round(s['music_volume'] * 10))} >", "music"),
                 (lambda: f"SOUND  < {int(round(s['sfx_volume'] * 10))} >", "sfx"),
-                (lambda: f"FULLSCREEN  {'ON' if self.app.fullscreen else 'OFF'}", "full"),
+                *([] if WEB else [(lambda: f"FULLSCREEN  {'ON' if self.app.fullscreen else 'OFF'}", "full")]),
                 ("BACK", "back"),
             ]
         self.menu = ui.Menu(items, size=14, gap=30)

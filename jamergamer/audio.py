@@ -3,10 +3,21 @@ import array
 import math
 import os
 import random
+import sys
 
 import pygame
 
 from .config import asset
+
+WEB = sys.platform == "emscripten"
+
+
+def _path(path):
+    """Resolve an asset path. The web build ships every sound as .ogg (see tools/build_web.py)."""
+    full = asset(path) if not os.path.isabs(path) else path
+    if WEB:
+        full = os.path.splitext(full)[0] + ".ogg"
+    return full
 
 
 class Audio:
@@ -27,7 +38,7 @@ class Audio:
         if path == self.current and not restart and pygame.mixer.music.get_busy():
             return
         try:
-            pygame.mixer.music.load(asset(path) if not os.path.isabs(path) else path)
+            pygame.mixer.music.load(_path(path))
             pygame.mixer.music.set_volume(self.save["music_volume"])
             pygame.mixer.music.play(-1 if loop else 0, start=start, fade_ms=fade_ms)
             self.current = path
@@ -55,7 +66,7 @@ class Audio:
         snd = self._cache.get(path)
         if snd is None:
             try:
-                snd = pygame.mixer.Sound(asset(path))
+                snd = pygame.mixer.Sound(_path(path))
             except (pygame.error, FileNotFoundError) as e:
                 print(f"[audio] could not load {path}: {e}")
                 snd = False
